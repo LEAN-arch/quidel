@@ -77,7 +77,8 @@ def style_rtm_status(val):
     if val == 'Fail': return 'background-color: #dc3545; color: white;'
     return ''
 
-st.dataframe(sw_rtm_df.style.applymap(style_rtm_status, subset=['Test Result']), use_container_width=True, hide_index=True)
+# CORRECTED LINE: Replaced deprecated .applymap with .map
+st.dataframe(sw_rtm_df.style.map(style_rtm_status, subset=['Test Result']), use_container_width=True, hide_index=True)
 
 if fail_count > 0:
     st.error(f"**Action Required:** {fail_count} failing test case(s) represents a blocker for software release. The associated defects must be investigated, resolved by the development team, and successfully re-tested by V&V.")
