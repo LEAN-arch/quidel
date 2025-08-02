@@ -110,7 +110,8 @@ with col2:
         - **Project Assignment Justification:** For the upcoming Savanna project, M. Rodriguez and S. Patel are the most qualified leads based on their documented expertise on that platform. This data provides objective justification for my resource allocation decisions.
         - **Software V&V Expertise:** Only the Director and Manager are currently proficient in IEC 62304 principles. **Action:** Plan a formal training session for the entire team on software V&V fundamentals to build a broader base of knowledge.
         """)
-    st.info("**Development Goal:** Proactively eliminate "Awareness Only" (light red) gaps for core competencies and cultivate multiple "Experts" (dark blue) for each critical skill to ensure business continuity.")
+    # CORRECTED: Replaced double quotes with single quotes inside the f-string
+    st.info("**Development Goal:** Proactively eliminate 'Awareness Only' (light red) gaps for core competencies and cultivate multiple 'Experts' (dark blue) for each critical skill to ensure business continuity.")
 
 
 st.divider()
