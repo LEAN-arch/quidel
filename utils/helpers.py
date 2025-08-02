@@ -1,4 +1,4 @@
-# utils/helpers.py (UPDATED to use Prophet and statsmodels)
+# utils/helpers.py (DEBUG VERSION)
 
 import streamlit as st
 import pandas as pd
@@ -10,69 +10,19 @@ from scipy import stats
 import statsmodels.formula.api as smf
 from prophet import Prophet
 from prophet.plot import plot_plotly
-from python_pptx import Presentation
-from python_pptx.util import Inches
+# from python_pptx import Presentation  # DEBUG: Temporarily disabled
+# from python_pptx.util import Inches    # DEBUG: Temporarily disabled
 from datetime import datetime, timedelta
 import io
 
-# --- (All previous helper functions remain the same) ---
-# [ ... get_mock_data, load_data, login, log_action, analysis, ppt_gen, kpis, charting ... ]
+def generate_ppt_report(protocol_data, analysis_results, analysis_fig):
+    """DEBUG: This feature is temporarily disabled to resolve an environment issue."""
+    # This function is non-operational until the python-pptx library can be installed.
+    pass
 
-# NOTE: The following functions are NEW ADDITIONS to the end of the file.
-# The previous functions from the corrected file should precede these.
+# --- ALL OTHER HELPER FUNCTIONS REMAIN THE SAME ---
+# (The full code for the rest of the helpers file follows)
 
-def generate_prophet_history(project_data):
-    """
-    Generates a synthetic daily progress history for a project to feed into Prophet.
-    In a real application, this data would come from a project management system.
-    """
-    start_date = pd.to_datetime(project_data['Start'])
-    today = datetime.now()
-    
-    # Ensure we don't try to generate history for a project that hasn't started
-    if start_date > today:
-        return pd.DataFrame(columns=['ds', 'y'])
-
-    days_elapsed = (today - start_date).days
-    progress_to_date = project_data['Pct_Complete']
-    
-    # Create a mostly linear progress trend with some random noise to simulate real work
-    date_range = pd.to_datetime(pd.date_range(start=start_date, end=today))
-    y_ideal = np.linspace(0, progress_to_date, len(date_range))
-    noise = np.random.normal(0, 2, len(date_range)) # Add some realistic variance
-    y_actual = np.clip(y_ideal + noise, 0, 100) # Ensure progress doesn't go below 0 or above 100
-    
-    history_df = pd.DataFrame({'ds': date_range, 'y': y_actual})
-    return history_df
-
-def run_prophet_forecast(history_df, future_days=90):
-    """
-    Takes a history dataframe and runs a Prophet forecast.
-    
-    Args:
-        history_df (pd.DataFrame): DataFrame with 'ds' and 'y' columns.
-        future_days (int): How many days into the future to forecast.
-
-    Returns:
-        tuple: The Prophet model object and the forecast DataFrame.
-    """
-    if history_df.empty or len(history_df) < 2:
-        return None, None
-        
-    # Prophet requires the 'y' values to be uncapped for forecasting growth.
-    # We will cap it back at 100% for interpretation later.
-    history_df['cap'] = 100 
-    
-    m = Prophet(growth='logistic') # Logistic growth is perfect for % completion
-    m.fit(history_df)
-    
-    future = m.make_future_dataframe(periods=future_days)
-    future['cap'] = 100
-    
-    forecast = m.predict(future)
-    return m, forecast
-
-# --- MAKE SURE ALL THE OTHER HELPER FUNCTIONS FROM THE PREVIOUSLY CORRECTED FILE ARE STILL HERE ---
 def get_mock_team_data():
     return pd.DataFrame({'Member':['Alice','Bob','Charlie','Diana','Edward'],'Role':['V&V Engineer','Sr. V&V Engineer','V&V Specialist','V&V Engineer','Sr. V&V Engineer'],'Capacity (hrs/wk)':[40,40,40,40,40],'Assigned_Hrs':[35,45,38,25,42],'Training_Status':['Compliant','Compliant','Overdue','Compliant','Compliant']})
 def get_mock_projects_data():
@@ -104,19 +54,9 @@ def analyze_linearity(data_df):
     if 'Expected' not in data_df.columns or 'Observed' not in data_df.columns:
         return None, "Error: 'Expected' and 'Observed' columns not found."
     model = smf.ols('Observed ~ Expected', data=data_df).fit()
-    results = {
-        'N': len(data_df),
-        'Slope': f"{model.params['Expected']:.4f}",
-        'Intercept': f"{model.params['Intercept']:.4f}",
-        'R-squared': f"{model.rsquared:.4f}"
-    }
-    fig = px.scatter(data_df, x='Expected', y='Observed', title='Linearity Plot',
-                     trendline='ols', trendline_color_override='red')
+    results = {'N': len(data_df),'Slope': f"{model.params['Expected']:.4f}",'Intercept': f"{model.params['Intercept']:.4f}",'R-squared': f"{model.rsquared:.4f}"}
+    fig = px.scatter(data_df, x='Expected', y='Observed', title='Linearity Plot',trendline='ols', trendline_color_override='red')
     return results, fig
-def generate_ppt_report(protocol_data,analysis_results,analysis_fig):
-    prs=Presentation();slide=prs.slides.add_slide(prs.slide_layouts[0]);slide.shapes.title.text="Verification & Validation Summary Report";slide.placeholders[1].text=f"Protocol: {protocol_data['Protocol_ID']} - {protocol_data['Title']}";slide=prs.slides.add_slide(prs.slide_layouts[1]);slide.shapes.title.text="Protocol Summary";txBox=slide.shapes.add_textbox(Inches(0.5),Inches(1.5),Inches(9.0),Inches(5.5));tf=txBox.text_frame;tf.clear();tf.paragraphs[0].text=f"Project: {protocol_data['Project']}";tf.add_paragraph().text=f"Acceptance Criteria: {protocol_data['Acceptance_Criteria']}";p_status=tf.add_paragraph();p_status.text=f"Status: {protocol_data['Status']}";p_status.space_before=Inches(0.2);p_results_header=tf.add_paragraph();p_results_header.text="Execution Results:";p_results_header.space_before=Inches(0.5)
-    for key,value in analysis_results.items():p=tf.add_paragraph();p.text=f"  • {key}: {value}";p.level=1
-    slide=prs.slides.add_slide(prs.slide_layouts[5]);slide.shapes.title.text="Graphical Analysis";img_bytes=io.BytesIO();analysis_fig.write_image(img_bytes,format='png',scale=2);img_bytes.seek(0);slide.shapes.add_picture(img_bytes,Inches(1.0),Inches(1.5),width=Inches(8.0));ppt_io=io.BytesIO();prs.save(ppt_io);ppt_io.seek(0);return ppt_io
 def calculate_kpis(protocols_df,team_df):
     protocols_df['Creation_Date']=pd.to_datetime(protocols_df['Creation_Date'],errors='coerce');protocols_df['Approval_Date']=pd.to_datetime(protocols_df['Approval_Date'],errors='coerce');valid_dates=protocols_df.dropna(subset=['Creation_Date','Approval_Date']);cycle_time=(valid_dates['Approval_Date']-valid_dates['Creation_Date']).dt.days;avg_cycle_time=cycle_time.mean();total_reviewed=len(protocols_df[protocols_df['Status'].isin(['Executed - Passed','Executed - Failed','Approved','Rejected'])]);rejected_count=len(protocols_df[protocols_df['Status']=='Rejected']);rejection_rate=(rejected_count/total_reviewed)*100 if total_reviewed>0 else 0;executed=protocols_df[protocols_df['Status'].str.contains("Executed",na=False)];failed_tests=len(executed[executed['Status']=='Executed - Failed']);failure_rate=(failed_tests/len(executed))*100 if len(executed)>0 else 0;team_df['Utilization']=(team_df['Assigned_Hrs']/team_df['Capacity (hrs/wk)'])*100;avg_utilization=team_df['Utilization'].mean();return{"avg_cycle_time":f"{avg_cycle_time:.1f} days","rejection_rate":f"{rejection_rate:.1f}%","failure_rate":f"{failure_rate:.1f}%","avg_utilization":f"{avg_utilization:.0f}%"}
 def create_enhanced_gantt(df):
@@ -134,3 +74,10 @@ def create_team_utilization_chart(team_df):
         if util>90:return'orange'
         return'green'
     team_df['Color']=team_df['Utilization'].apply(get_color);fig=px.bar(team_df,x='Member',y='Utilization',title='Team Capacity Utilization',text=team_df['Utilization'].apply(lambda x:f'{x:.0f}%'));fig.update_traces(marker_color=team_df['Color'],textposition='outside');fig.add_hline(y=100,line_dash="dot",line_color="red",annotation_text="Max Capacity",annotation_position="bottom right");fig.update_layout(yaxis_title="Utilization (%)",yaxis_range=[0,team_df['Utilization'].max()*1.2]);return fig
+def generate_prophet_history(project_data):
+    start_date=pd.to_datetime(project_data['Start']);today=datetime.now()
+    if start_date>today:return pd.DataFrame(columns=['ds','y'])
+    days_elapsed=(today-start_date).days;progress_to_date=project_data['Pct_Complete'];date_range=pd.to_datetime(pd.date_range(start=start_date,end=today));y_ideal=np.linspace(0,progress_to_date,len(date_range));noise=np.random.normal(0,2,len(date_range));y_actual=np.clip(y_ideal+noise,0,100);history_df=pd.DataFrame({'ds':date_range,'y':y_actual});return history_df
+def run_prophet_forecast(history_df,future_days=90):
+    if history_df.empty or len(history_df)<2:return None,None
+    history_df['cap']=100;m=Prophet(growth='logistic');m.fit(history_df);future=m.make_future_dataframe(periods=future_days);future['cap']=100;forecast=m.predict(future);return m,forecast
