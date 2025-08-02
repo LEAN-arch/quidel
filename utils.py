@@ -24,7 +24,7 @@ quidelortho_template = {
 pio.templates["quidelortho_commercial"] = quidelortho_template
 pio.templates.default = "quidelortho_commercial"
 
-# === CORE DATA GENERATION (V&V DIRECTOR'S VIEW - ENHANCED) ===
+# === CORE DATA GENERATION (V&V DIRECTOR'S VIEW - EXTENDED) ===
 
 def generate_vv_project_data():
     """Generates V&V project data reflecting QuidelOrtho's portfolio, including dependencies and milestones."""
@@ -52,34 +52,36 @@ def generate_vv_project_data():
 def generate_risk_management_data():
     """Generates risk data based on ISO 14971, reflecting a mature risk management process."""
     data = {
-        'Risk ID': ['R-SAV-001', 'R-SOF-003', 'R-VIT-002', 'R-TRI-001', 'R-GEN-005'],
+        'Risk ID': ['R-SAV-001', 'R-SOF-003', 'R-VIT-002', 'R-TRI-001', 'R-GEN-005', 'R-SFT-001'],
         'Project': [
             'Savanna® RVP12 Assay', 'Sofia® 2 SARS Antigen+ FIA v2', 'Vitros® HIV Combo 5 Test',
-            'Triage® BNPNext™ Consumable Change', 'Savanna® RVP12 Assay'
+            'Triage® BNPNext™ Consumable Change', 'Savanna® RVP12 Assay', 'Ortho-Vision® Analyzer SW Patch V&V'
         ],
         'Risk Description': [
             'Potential cross-reactivity with emerging non-pathogenic coronavirus strains could lead to false positives, resulting in unnecessary treatment.',
             'New swab material shows lower-than-expected analyte recovery near LoD, potentially impacting sensitivity and leading to a false negative.',
             'Undetected interference from a common therapeutic drug (e.g., biotin) could lead to a false negative result, delaying critical diagnosis.',
             'New plastic supplier for consumable has higher lot-to-lot variability in material properties, potentially causing inconsistent test results.',
-            'V&V study execution timeline conflicts with key personnel availability, posing a risk of delayed regulatory submission.'
+            'V&V study execution timeline conflicts with key personnel availability, posing a risk of delayed regulatory submission.',
+            'Regression testing for software patch fails to cover a legacy edge-case, potentially re-introducing a previously fixed bug.'
         ],
-        'Severity': [4, 4, 5, 3, 2],
-        'Probability': [3, 4, 2, 3, 4],
-        'Owner': ['R&D/V&V', 'V&V Team', 'Clinical/V&V', 'Supply Chain/V&V', 'V&V Management'],
+        'Severity': [4, 4, 5, 3, 2, 4],
+        'Probability': [3, 4, 2, 3, 4, 2],
+        'Owner': ['R&D/V&V', 'V&V Team', 'Clinical/V&V', 'Supply Chain/V&V', 'V&V Management', 'SW V&V Team'],
         'Mitigation': [
             'Test against a comprehensive panel of endemic coronaviruses per FDA guidance. Document results in V&V report.',
             'Increase sample size for LoD confirmation study; qualify a second swab supplier as a risk control measure.',
             'Include biotin and other interferents in testing per CLSI EP07. Add limitation to Instructions for Use (IFU).',
             'Require tighter Certificate of Analysis (CoA) specs from supplier; perform incoming QC on each lot.',
-            'Re-allocate V&V specialist from a lower priority project. Document change in project plan.'
+            'Re-allocate V&V specialist from a lower priority project. Document change in project plan.',
+            'Expand regression test suite to include historical defect scenarios. Perform targeted black-box testing on affected modules.'
         ]
     }
     df = pd.DataFrame(data)
     df['Risk_Score'] = df['Severity'] * df['Probability']
     return df.sort_values(by='Risk_Score', ascending=False)
 
-# === V&V STUDY DATA GENERATION (ENHANCED) ===
+# === V&V STUDY DATA GENERATION (EXTENDED) ===
 
 def generate_linearity_data_immunoassay():
     """Generates realistic linearity data for a quantitative immunoassay, including saturation effects."""
@@ -137,6 +139,7 @@ def generate_lot_to_lot_data():
 def calculate_equivalence(df, group_col, value_col, low_eq_bound, high_eq_bound):
     """Performs a Two-One-Sided T-Test (TOST) for equivalence."""
     groups = df[group_col].unique()
+    if len(groups) != 2: return np.nan, np.nan
     group1 = df[df[group_col] == groups[0]][value_col]
     group2 = df[df[group_col] == groups[1]][value_col]
     t_stat, p_val_diff = stats.ttest_ind(group1, group2, equal_var=False)
@@ -150,9 +153,9 @@ def calculate_equivalence(df, group_col, value_col, low_eq_bound, high_eq_bound)
     p_low = stats.t.sf(t_low, df=len(group1) + len(group2) - 2)
     p_high = stats.t.cdf(t_high, df=len(group1) + len(group2) - 2)
     
-    return max(p_low, p_high), p_val_diff
+    return max(p_low, p_high), p_val_diff, mean_diff
 
-# === REGULATORY & QMS DATA GENERATION (ENHANCED) ===
+# === REGULATORY & QMS DATA GENERATION (EXTENDED) ===
 
 def generate_submission_package_data(project_name="Savanna® RVP12 Assay", pathway="510(k)"):
     """Generates a detailed checklist of V&V deliverables for a regulatory submission package."""
@@ -180,17 +183,17 @@ def generate_submission_package_data(project_name="Savanna® RVP12 Assay", pathw
 def generate_capa_data():
     """Generates data for V&V-related CAPAs and investigations with enhanced detail."""
     data = {
-        'ID': ['CAPA-23-011', 'INV-24-005', 'CAPA-24-002'],
-        'Source': ['Post-Launch Complaint Trend', 'V&V Study Anomaly', 'Internal Audit Finding'],
-        'Product': ['Sofia® RSV', 'Savanna® RVP12 Assay', 'All Assay Platforms'],
-        'Description': ['Confirmed increase in reported false positives from EU region after lot change.', 'Unexpected weak positive signal for hMPV in Flu A channel during specificity testing.', 'Inconsistent documentation of V&V protocol deviations across multiple projects.'],
-        'Owner': ['V&V Mgmt / R&D', 'M. Rodriguez', 'QA / V&V Mgmt'],
-        'Phase': ['Effectiveness Check', 'Root Cause Investigation', 'Implementation'],
-        'Due Date': [date.today() - timedelta(days=10), date.today() + timedelta(days=18), date.today() + timedelta(days=40)]
+        'ID': ['CAPA-23-011', 'INV-24-005', 'CAPA-24-002', 'INV-24-006'],
+        'Source': ['Post-Launch Complaint Trend', 'V&V Study Anomaly', 'Internal Audit Finding', 'Contract Lab Deviation'],
+        'Product': ['Sofia® RSV', 'Savanna® RVP12 Assay', 'All Assay Platforms', 'Vitros® HIV Combo 5 Test'],
+        'Description': ['Confirmed increase in reported false positives from EU region after lot change.', 'Unexpected weak positive signal for hMPV in Flu A channel during specificity testing.', 'Inconsistent documentation of V&V protocol deviations across multiple projects.', 'External CRO reported temperature excursion during stability sample storage.'],
+        'Owner': ['V&V Mgmt / R&D', 'M. Rodriguez', 'QA / V&V Mgmt', 'S. Patel'],
+        'Phase': ['Effectiveness Check', 'Root Cause Investigation', 'Implementation', 'Impact Assessment'],
+        'Due Date': [date.today() - timedelta(days=10), date.today() + timedelta(days=18), date.today() + timedelta(days=40), date.today() + timedelta(days=5)]
     }
     return pd.DataFrame(data)
 
-# === V&V LAB OPERATIONS DATA (ENHANCED) ===
+# === V&V LAB OPERATIONS DATA (EXTENDED) ===
 
 def generate_instrument_schedule_data():
     """Generates a more dynamic schedule for instruments in the V&V lab."""
@@ -213,7 +216,8 @@ def generate_training_data_for_heatmap():
         'CLSI EP05/EP17 (Precision/LoD)': [2, 2, 1, 1, 0], 'CLSI EP07/EP37 (Interference/Immunoassay)': [2, 1, 2, 1, 1],
         'Statistical Analysis (JMP/R)': [2, 2, 1, 0, 0], 'Savanna® Platform & Assays': [2, 1, 1, 2, 1],
         'Sofia® Platform & Assays': [1, 2, 2, 1, 1], 'Vitros® Platform & Assays': [1, 0, 1, 0, 2],
-        'V&V Protocol & Report Authoring': [2, 2, 2, 1, 1], 'Risk Management (ISO 14971)': [2, 2, 1, 1, 0]
+        'V&V Protocol & Report Authoring': [2, 2, 2, 1, 1], 'Risk Management (ISO 14971)': [2, 2, 1, 1, 0],
+        'Software V&V (IEC 62304)': [2, 1, 0, 0, 0]
     }
     df = pd.DataFrame(data, index=['A. Director', 'M. Rodriguez (Mgr)', 'J. Chen (Sr. Specialist)', 'S. Patel (Specialist II)', 'K. Lee (New Hire)'])
     return df
@@ -228,5 +232,42 @@ def generate_reagent_lot_status_data():
         'Status': ['In Use - Qualified', 'Low Inventory', 'Quarantined - Awaiting CoA', 'Expired - Do Not Use'],
         'Expiry Date': [today + timedelta(days=90), today + timedelta(days=25), today + timedelta(days=180), today - timedelta(days=5)],
         'Notes': ['Reference lot for all V&V studies.', 'Final LoD studies must complete before expiry.', 'Incoming material. Not released for V&V use.', 'Remove from inventory. Document disposal.']
+    }
+    return pd.DataFrame(data)
+
+# === NEW DATA GENERATION FOR EXTENDED FEATURES ===
+
+def generate_traceability_matrix_data():
+    """Generates data for a detailed Requirements Traceability Matrix."""
+    data = {
+        'Requirement ID': ['URS-001', 'URS-002', 'SRS-005', 'SRS-006', 'Risk-Ctrl-010'],
+        'Requirement Type': ['User Need', 'User Need', 'System Requirement', 'Software Requirement', 'Risk Control Measure'],
+        'Description': [
+            'The Savanna system shall identify Influenza A in a sample.',
+            'The assay result should be available in under 30 minutes.',
+            'The system shall achieve a clinical sensitivity of >95% for Influenza A.',
+            'The software shall flag results with a Ct value > 37 as "indeterminate".',
+            'The assay must not cross-react with high-titer Influenza B samples.'
+        ],
+        'V&V Protocol': ['V&V-PRO-010', 'V&V-PRO-021', 'V&V-PRO-010', 'V&V-PRO-SFT-001', 'V&V-PRO-011'],
+        'Test Case ID': ['TC-LOD-01', 'TC-TIME-01-05', 'TC-SENS-01-50', 'TC-FLAG-01-03', 'TC-SPEC-01-10'],
+        'Test Result': ['Pass', 'Pass', 'Pass', 'Fail', 'Pass'],
+        'V&V Report': ['V&V-RPT-010', 'V&V-RPT-021', 'V&V-RPT-010', 'V&V-RPT-SFT-001', 'V&V-RPT-011']
+    }
+    return pd.DataFrame(data)
+
+def generate_change_control_data():
+    """Generates data for managing post-launch changes via ECOs."""
+    data = {
+        'ECO Number': ['ECO-01234', 'ECO-01255', 'ECO-01260'],
+        'Product Impacted': ['Sofia® 2 SARS Antigen+ FIA', 'Triage® BNPNext™', 'Savanna® RVP12 Assay'],
+        'Change Description': [
+            'Update IFU to include new, validated swab type.',
+            'Qualify second-source supplier for plastic consumable housing.',
+            'Minor software update to improve sample traceability logging (no algorithm change).'
+        ],
+        'V&V Impact Assessment': ['Low. Requires limited V&V to confirm swab equivalency.', 'Medium. Requires full V&V of key performance specs (precision, LoD) with new plastic.', 'Low. Requires targeted software regression testing.'],
+        'Assigned V&V Lead': ['J. Chen', 'M. Rodriguez', 'S. Patel'],
+        'Status': ['V&V Complete', 'V&V in Progress', 'Awaiting V&V Plan']
     }
     return pd.DataFrame(data)
