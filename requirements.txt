@@ -1,3 +1,5 @@
+# DEBUGGING: Temporarily disabling python-pptx to isolate the environment issue.
+#
 # Core application and UI framework
 streamlit
 
@@ -16,7 +18,7 @@ statsmodels
 prophet==1.1.5
 
 # PowerPoint report generation
-python-pptx==0.6.23
+# python-pptx==0.6.23  <-- DISABLED FOR DEBUGGING
 
 # Required by Plotly for static image export (used in PPT generation)
 kaleido==0.2.1
