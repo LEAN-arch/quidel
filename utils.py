@@ -8,7 +8,7 @@ import plotly.io as pio
 from datetime import date, timedelta
 from scipy import stats
 
-# --- Custom Plotly Template for QuidelOrtho (Commercial Grade) ---
+# --- Custom Plotly Template for QuidelOrtho (SME Grade) ---
 quidelortho_template = {
     "layout": {
         "font": {"family": "Arial, Helvetica, sans-serif", "size": 12, "color": "#212529"},
@@ -21,81 +21,84 @@ quidelortho_template = {
         "legend": {"bgcolor": "rgba(255,255,255,0.9)", "bordercolor": "#DEE2E6", "borderwidth": 1, "orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}
     }
 }
-pio.templates["quidelortho_commercial"] = quidelortho_template
-pio.templates.default = "quidelortho_commercial"
+pio.templates["quidelortho_sme"] = quidelortho_template
+pio.templates.default = "quidelortho_sme"
 
-# === CORE DATA GENERATION (V&V DIRECTOR'S VIEW - ENHANCED) ===
+# === CORE DATA GENERATION (SME ENHANCED) ===
 
 def generate_vv_project_data():
-    """Generates V&V project data reflecting QuidelOrtho's portfolio, including dependencies and milestones."""
+    """Generates enhanced V&V and Validation project data with financial and performance metrics."""
     data = {
         'Project/Assay': [
             'Savanna® RVP12 Assay', 'Sofia® 2 SARS Antigen+ FIA v2', 'Vitros® HIV Combo 5 Test',
-            'Triage® BNPNext™ Consumable Change', 'QuickVue® At-Home OTC COVID-19 Test Line Extension', 'Ortho-Vision® Analyzer SW Patch V&V'
+            'Triage® BNPNext™ Consumable Change', 'Automated Filler & Capper Line 3', 'Ortho-Vision® Analyzer SW Patch V&V', 'New Blister Pack Sealer Unit 7'
         ],
-        'Platform': ['Savanna', 'Sofia', 'Vitros', 'Triage', 'QuickVue', 'Ortho-Vision'],
-        'V&V Lead': ['M. Rodriguez', 'J. Chen', 'S. Patel', 'M. Rodriguez', 'J. Chen', 'S. Patel'],
-        'V&V Phase': ['Execution', 'Reporting', 'Protocol Development', 'On Hold', 'Planning', 'Data Analysis'],
-        'Overall Status': ['On Track', 'On Track', 'At Risk', 'On Hold', 'On Track', 'On Track'],
-        'Regulatory Pathway': ['510(k)', 'EUA Modification', 'PMA Supplement', 'Letter to File', '510(k)', 'Letter to File'],
-        'Upstream Dependency': ['R&D Finalized Assay Design', 'N/A', 'Clinical Sample Acquisition', 'Supply Chain Qualification', 'Marketing Finalizes User Needs', 'SW Development Team'],
-        'Key Milestone': ['Final Report for Submission', 'EUA Submission', 'PMA Submission Package Ready', 'N/A', 'V&V Plan Approval', 'V&V Report for ECO'],
-        'Start Date': [date.today() - timedelta(days=60), date.today() - timedelta(days=90), date.today() - timedelta(days=10), date.today() - timedelta(days=120), date.today() + timedelta(days=15), date.today() - timedelta(days=30)],
-        'Due Date': [date.today() + timedelta(days=45), date.today() + timedelta(days=5), date.today() + timedelta(days=60), date.today() + timedelta(days=15), date.today() + timedelta(days=120), date.today() + timedelta(days=20)],
-        'Milestone Date': [date.today() + timedelta(days=40), date.today() + timedelta(days=4), date.today() + timedelta(days=55), pd.NaT, date.today() + timedelta(days=60), date.today() + timedelta(days=18)],
+        'Type': ['Assay', 'Assay', 'Assay', 'Assay', 'Equipment', 'Software', 'Equipment'],
+        'Platform': ['Savanna', 'Sofia', 'Vitros', 'Triage', 'Manufacturing', 'Ortho-Vision', 'Packaging'],
+        'V&V Lead': ['M. Rodriguez', 'J. Chen', 'S. Patel', 'M. Rodriguez', 'V. Kumar', 'S. Patel', 'V. Kumar'],
+        'V&V Phase': ['Execution', 'Reporting', 'PQ', 'On Hold', 'IQ/OQ', 'Data Analysis', 'FAT/SAT'],
+        'Overall Status': ['On Track', 'On Track', 'At Risk', 'On Hold', 'On Track', 'On Track', 'Behind Schedule'],
+        'Regulatory Pathway': ['510(k)', 'EUA Modification', 'PMA Supplement', 'Letter to File', 'N/A', 'Letter to File', 'N/A'],
+        'Key Milestone': ['Final Report for Submission', 'EUA Submission', 'Production Readiness', 'N/A', 'OQ Completion', 'V&V Report for ECO', 'SAT Completion'],
+        'Start Date': [date.today() - timedelta(days=60), date.today() - timedelta(days=90), date.today() - timedelta(days=10), date.today() - timedelta(days=120), date.today() - timedelta(days=45), date.today() - timedelta(days=30), date.today() - timedelta(days=90)],
+        'Due Date': [date.today() + timedelta(days=45), date.today() + timedelta(days=5), date.today() + timedelta(days=60), date.today() + timedelta(days=15), date.today() + timedelta(days=75), date.today() + timedelta(days=20), date.today() + timedelta(days=30)],
+        'On Critical Path': [False, False, True, False, True, False, True],
+        'Budget (USD)': [250000, 150000, 500000, 50000, 1200000, 75000, 300000],
+        'Spent (USD)': [150000, 135000, 350000, 20000, 450000, 40000, 250000],
+        'Schedule Performance Index (SPI)': [1.05, 1.10, 0.92, 1.0, 1.02, 0.98, 0.85],
+        'First Time Right %': [98, 99, 95, 100, 92, 100, 88],
+        'Utilization %': [85, 90, 110, 0, 100, 75, 120]
     }
     df = pd.DataFrame(data)
-    for col in ['Start Date', 'Due Date', 'Milestone Date']:
-        df[col] = pd.to_datetime(df[col])
+    df['Start Date'] = pd.to_datetime(df['Start Date'])
+    df['Due Date'] = pd.to_datetime(df['Due Date'])
     return df
 
 def generate_risk_management_data():
-    """Generates risk data based on ISO 14971, reflecting a mature risk management process."""
+    """Generates enhanced risk data for both assay and equipment validation."""
     data = {
-        'Risk ID': ['R-SAV-001', 'R-SOF-003', 'R-VIT-002', 'R-TRI-001', 'R-GEN-005', 'R-SFT-001'],
+        'Risk ID': ['R-SAV-001', 'R-EQP-001', 'R-VIT-002', 'R-TRI-001', 'R-GEN-005', 'R-SFT-001'],
         'Project': [
-            'Savanna® RVP12 Assay', 'Sofia® 2 SARS Antigen+ FIA v2', 'Vitros® HIV Combo 5 Test',
+            'Savanna® RVP12 Assay', 'Automated Filler & Capper Line 3', 'Vitros® HIV Combo 5 Test',
             'Triage® BNPNext™ Consumable Change', 'Savanna® RVP12 Assay', 'Ortho-Vision® Analyzer SW Patch V&V'
         ],
         'Risk Description': [
-            'Potential cross-reactivity with emerging non-pathogenic coronavirus strains could lead to false positives, resulting in unnecessary treatment.',
-            'New swab material shows lower-than-expected analyte recovery near LoD, potentially impacting sensitivity and leading to a false negative.',
-            'Undetected interference from a common therapeutic drug (e.g., biotin) could lead to a false negative result, delaying critical diagnosis.',
-            'New plastic supplier for consumable has higher lot-to-lot variability in material properties, potentially causing inconsistent test results.',
+            'Potential cross-reactivity with emerging non-pathogenic coronavirus strains could lead to false positives.',
+            'New automated capper applies inconsistent torque, potentially compromising container closure integrity and product sterility.',
+            'Undetected interference from biotin could lead to a false negative result, delaying critical diagnosis.',
+            'New plastic supplier for consumable has higher lot-to-lot variability, potentially causing inconsistent test results.',
             'V&V study execution timeline conflicts with key personnel availability, posing a risk of delayed regulatory submission.',
             'Regression testing for software patch fails to cover a legacy edge-case, potentially re-introducing a previously fixed bug.'
         ],
-        'Severity': [4, 4, 5, 3, 2, 4],
-        'Probability': [3, 4, 2, 3, 4, 2],
-        'Owner': ['R&D/V&V', 'V&V Team', 'Clinical/V&V', 'Supply Chain/V&V', 'V&V Management', 'SW V&V Team'],
+        'Severity': [4, 5, 5, 3, 2, 4],
+        'Probability': [3, 3, 2, 3, 4, 2],
+        'Owner': ['R&D/V&V', 'Automation/Validation', 'Clinical/V&V', 'Supply Chain/V&V', 'V&V Management', 'SW V&V Team'],
         'Mitigation': [
-            'Test against a comprehensive panel of endemic coronaviruses per FDA guidance. Document results in V&V report.',
-            'Increase sample size for LoD confirmation study; qualify a second swab supplier as a risk control measure.',
+            'Test against a comprehensive panel of endemic coronaviruses per FDA guidance.',
+            'Incorporate torque verification and container closure integrity testing (CCIT) into OQ and PQ protocols.',
             'Include biotin and other interferents in testing per CLSI EP07. Add limitation to Instructions for Use (IFU).',
             'Require tighter Certificate of Analysis (CoA) specs from supplier; perform incoming QC on each lot.',
             'Re-allocate V&V specialist from a lower priority project. Document change in project plan.',
-            'Expand regression test suite to include historical defect scenarios. Perform targeted black-box testing on affected modules.'
+            'Expand regression test suite to include historical defect scenarios.'
         ]
     }
     df = pd.DataFrame(data)
     df['Risk_Score'] = df['Severity'] * df['Probability']
     return df.sort_values(by='Risk_Score', ascending=False)
 
-# === V&V STUDY DATA GENERATION (ENHANCED) ===
+# === V&V/VALIDATION STUDY DATA GENERATION ===
 
 def generate_linearity_data_immunoassay():
-    """Generates realistic linearity data for a quantitative immunoassay, including saturation effects."""
+    """Generates realistic linearity data for a quantitative immunoassay."""
     expected_conc = np.array([0, 10, 50, 100, 250, 500, 750, 1000])
     od_values = 2.5 * expected_conc / (50 + expected_conc)
     observed_od = od_values + np.random.normal(0, 0.03, expected_conc.shape)
-    observed_od[0] = np.random.uniform(0.04, 0.06) # Blank noise
-    observed_od[-2:] += np.random.normal(0, 0.02, 2) # Add noise to saturation
+    observed_od[0] = np.random.uniform(0.04, 0.06)
     return pd.DataFrame({'Analyte Concentration (ng/mL)': expected_conc, 'Optical Density (OD)': observed_od})
 
 def generate_precision_data_clsi_ep05():
-    """Generates precision data with more nuance, including different variance components for a Sofia® FIA assay."""
+    """Generates precision data with nuance for a Sofia® FIA assay."""
     days = [f'Day {i}' for i in range(1, 6)]; runs_per_day = 2; reps_per_run = 3; data = []
-    # Control 1 (Low Positive)
     for day_idx, day in enumerate(days):
         day_effect = np.random.normal(0, 0.08)
         for run in range(1, runs_per_day + 1):
@@ -104,7 +107,6 @@ def generate_precision_data_clsi_ep05():
             stdev_within_run = 0.12
             values = np.random.normal(loc=mean_s_co, scale=stdev_within_run, size=reps_per_run)
             for val in values: data.append({'Control': 'Low Positive (Near Cutoff)', 'Day': day, 'Run': run, 'S/CO Ratio': val})
-    # Control 2 (Moderate Positive)
     for day_idx, day in enumerate(days):
         day_effect = np.random.normal(0, 0.2)
         for run in range(1, runs_per_day + 1):
@@ -115,85 +117,30 @@ def generate_precision_data_clsi_ep05():
             for val in values: data.append({'Control': 'Moderate Positive', 'Day': day, 'Run': run, 'S/CO Ratio': val})
     return pd.DataFrame(data)
 
-def generate_analytical_specificity_data_molecular():
-    """Generates cross-reactivity data for a Savanna® panel, including a borderline case for adjudication."""
-    np.random.seed(42); data = []
-    data.extend([{'Sample ID': f'FLU-A-S{i}', 'Organism Tested': 'Influenza A', 'Result': 'Positive', 'Ct Value': v, 'Notes': 'Inclusivity Panel'} for i, v in enumerate(np.random.normal(24, 0.5, 10), 1)])
-    data.extend([{'Sample ID': f'FLU-B-S{i}', 'Organism Tested': 'Influenza B', 'Result': 'Negative', 'Ct Value': np.nan, 'Notes': 'Exclusivity Panel'} for i in range(1, 6)])
-    data.extend([{'Sample ID': f'RSV-A-S{i}', 'Organism Tested': 'RSV A', 'Result': 'Negative', 'Ct Value': np.nan, 'Notes': 'Exclusivity Panel'} for i in range(1, 6)])
-    data.extend([{'Sample ID': f'hMPV-S1', 'Organism Tested': 'Human Metapneumovirus', 'Result': 'Positive', 'Ct Value': 38.1, 'Notes': 'Potential Cross-reactivity, requires investigation.'}])
-    data.extend([{'Sample ID': f'hMPV-S{i}', 'Organism Tested': 'Human Metapneumovirus', 'Result': 'Negative', 'Ct Value': np.nan, 'Notes': 'Exclusivity Panel'} for i in range(2, 6)])
-    data.extend([{'Sample ID': f'NTC-S{i}', 'Organism Tested': 'Negative Control', 'Result': 'Negative', 'Ct Value': np.nan, 'Notes': 'Process Control'} for i in range(1, 11)])
-    return pd.DataFrame(data)
-
-def generate_lot_to_lot_data():
-    """Generates lot-to-lot data for a QuickVue® consumable, suitable for equivalence testing."""
-    np.random.seed(0); lots = ['Lot 23A001 (Reference)', 'Lot 24A001 (Candidate)']; data = []
-    for lot in lots:
-        mean_intensity = 155 if lot.startswith('Lot 23A') else 150
-        stdev = 10
-        values = np.random.normal(loc=mean_intensity, scale=stdev, size=50)
-        for val in values: data.append({'Reagent Lot ID': lot, 'Test Line Intensity': val})
-    return pd.DataFrame(data)
-
-def calculate_equivalence(df, group_col, value_col, low_eq_bound, high_eq_bound):
-    """Performs a Two-One-Sided T-Test (TOST) for equivalence."""
-    groups = df[group_col].unique()
-    if len(groups) != 2: return np.nan, np.nan, np.nan
-    group1 = df[df[group_col] == groups[0]][value_col]
-    group2 = df[df[group_col] == groups[1]][value_col]
-    t_stat, p_val_diff = stats.ttest_ind(group1, group2, equal_var=False)
-    
-    mean_diff = group1.mean() - group2.mean()
-    std_err_diff = np.sqrt(group1.var()/len(group1) + group2.var()/len(group2))
-    
-    t_low = (mean_diff - low_eq_bound) / std_err_diff
-    t_high = (mean_diff - high_eq_bound) / std_err_diff
-    
-    p_low = stats.t.sf(t_low, df=len(group1) + len(group2) - 2)
-    p_high = stats.t.cdf(t_high, df=len(group1) + len(group2) - 2)
-    
-    return max(p_low, p_high), p_val_diff, mean_diff
-
-# === NEW DATA GENERATION FOR ADVANCED VISUALIZATIONS ===
-
 def generate_method_comparison_data():
-    """Generates data for a Bland-Altman plot, comparing a new method to a reference."""
+    """Generates data for a Bland-Altman plot."""
     np.random.seed(123)
     n_samples = 100
     reference_values = np.random.uniform(10, 500, n_samples)
-    # Introduce a slight proportional bias and random error
     new_method_values = 1.05 * reference_values - 5 + np.random.normal(0, 15, n_samples)
     return pd.DataFrame({'Reference Method (U/L)': reference_values, 'Candidate Method (U/L)': new_method_values})
 
-def generate_risk_burndown_data():
-    """Generates time-series data for a risk burndown chart."""
-    weeks = pd.to_datetime(pd.date_range(start="2024-01-01", periods=12, freq='W'))
-    high_risks = np.array([5, 5, 4, 4, 3, 2, 2, 1, 1, 1, 0, 0])
-    medium_risks = np.array([10, 11, 11, 10, 9, 9, 8, 6, 5, 4, 3, 2])
-    low_risks = np.array([8, 8, 9, 10, 10, 11, 11, 10, 9, 8, 8, 7])
-    return pd.DataFrame({'Week': weeks, 'High': high_risks, 'Medium': medium_risks, 'Low': low_risks})
+def generate_equipment_pq_data():
+    """Generates PQ data for an automated filler, including a process shift."""
+    np.random.seed(42)
+    batches = 10
+    samples_per_batch = 30
+    data = []
+    for i in range(batches):
+        mean_fill = 5.02
+        if i >= 6: mean_fill = 5.08 # Process shift
+        std_dev = 0.05
+        values = np.random.normal(loc=mean_fill, scale=std_dev, size=samples_per_batch)
+        for val in values:
+            data.append({'Batch': f'PQ_Batch_{i+1}', 'Fill Volume (mL)': val})
+    return pd.DataFrame(data)
 
-def generate_defect_trend_data():
-    """Generates data for a software defect burn-down chart."""
-    days = pd.to_datetime(pd.date_range(start="2024-06-01", periods=30, freq='D'))
-    total_defects = np.cumsum(np.random.randint(0, 3, size=30)) + 5
-    closed_defects = np.cumsum(np.random.randint(0, 2, size=30))
-    closed_defects = np.minimum(closed_defects, total_defects)
-    open_defects = total_defects - closed_defects
-    return pd.DataFrame({'Date': days, 'Open Defects': open_defects, 'Total Defects Found': total_defects})
-
-def calculate_instrument_utilization(schedule_df):
-    """Processes schedule data to calculate utilization stats for a treemap."""
-    schedule_df['Duration'] = (schedule_df['Finish'] - schedule_df['Start']).dt.total_seconds() / 3600
-    platform_map = {
-        'Savanna-V&V-01': 'Savanna', 'Savanna-V&V-02': 'Savanna',
-        'Sofia-V&V-01': 'Sofia', 'Sofia-V&V-02': 'Sofia',
-        'Vitros-DEV-01': 'Vitros'
-    }
-    schedule_df['Platform'] = schedule_df['Instrument'].map(platform_map)
-    util_df = schedule_df.groupby(['Platform', 'Instrument', 'Status'])['Duration'].sum().reset_index()
-    return util_df
+# === REGULATORY & QMS DATA GENERATION ===
 
 def generate_submission_package_data(project_name="Savanna® RVP12 Assay", pathway="510(k)"):
     """Generates a detailed checklist of V&V deliverables for a regulatory submission package."""
@@ -218,7 +165,7 @@ def generate_submission_package_data(project_name="Savanna® RVP12 Assay", pathw
     return df
 
 def generate_capa_data():
-    """Generates data for V&V-related CAPAs and investigations with enhanced detail."""
+    """Generates data for V&V-related CAPAs and investigations."""
     data = {
         'ID': ['CAPA-23-011', 'INV-24-005', 'CAPA-24-002', 'INV-24-006'],
         'Source': ['Post-Launch Complaint Trend', 'V&V Study Anomaly', 'Internal Audit Finding', 'Contract Lab Deviation'],
@@ -230,80 +177,22 @@ def generate_capa_data():
     }
     return pd.DataFrame(data)
 
-def generate_instrument_schedule_data():
-    """Generates a more dynamic schedule for instruments in the V&V lab."""
-    today = pd.Timestamp.now().normalize()
-    data = [
-        {'Instrument': 'Savanna-V&V-01', 'Start': today, 'Finish': today + timedelta(days=3), 'Status': 'V&V Execution', 'Details': 'RVP12 Reproducibility Study (P.N. V&V-PRO-012)'},
-        {'Instrument': 'Savanna-V&V-02', 'Start': today + timedelta(days=4), 'Finish': today + timedelta(days=5), 'Status': 'Calibration/PM', 'Details': 'Annual Preventative Maintenance'},
-        {'Instrument': 'Sofia-V&V-01', 'Start': today - timedelta(days=1), 'Finish': today + timedelta(days=1), 'Status': 'V&V Execution', 'Details': 'SARS v2 LoD Confirmation (P.N. V&V-PRO-015)'},
-        {'Instrument': 'Sofia-V&V-02', 'Start': today - timedelta(days=2), 'Finish': today + timedelta(days=2), 'Status': 'OOS', 'Details': 'OOS-24-01: Optics alignment failure. Awaiting service engineer.'},
-        {'Instrument': 'Vitros-DEV-01', 'Start': today, 'Finish': today + timedelta(days=7), 'Status': 'Available', 'Details': 'Open for booking.'}
-    ]
+def generate_validation_program_data():
+    """Generates data for the Validation Master Program overview."""
+    data = {
+        'System_ID': ['EQP-00123', 'EQP-00456', 'SW-0010', 'EQP-00789', 'UTL-0001'],
+        'System_Name': ['Automated Filler & Capper Line 3', 'Blister Pack Sealer Unit 7', 'LIMS v3.2', 'Lyophilizer #2', 'Purified Water (WFI) Loop'],
+        'Validation_Status': ['Validated', 'Validation in Progress', 'Validated', 'Revalidation Due', 'Validated'],
+        'Last_Validation_Date': [date(2022, 5, 20), date(2024, 6, 15), date(2023, 1, 10), date(2021, 8, 30), date(2024, 2, 28)],
+        'Next_Revalidation_Date': [date(2025, 5, 20), date(2027, 6, 15), date(2026, 1, 10), date(2024, 8, 30), date(2025, 2, 28)],
+        'Validation_Lead': ['V. Kumar', 'V. Kumar', 'S. Patel', 'V. Kumar', 'Facilities Eng']
+    }
     df = pd.DataFrame(data)
-    for col in ['Start', 'Finish']:
-        df[col] = pd.to_datetime(df[col])
+    df['Next_Revalidation_Date'] = pd.to_datetime(df['Next_Revalidation_Date'])
+    df['Days_Until_Due'] = (df['Next_Revalidation_Date'] - pd.to_datetime(date.today())).dt.days
     return df
 
-def generate_training_data_for_heatmap():
-    """Generates an enhanced, role-based competency matrix for the Assay V&V Team."""
-    data = {
-        'CLSI EP05/EP17 (Precision/LoD)': [2, 2, 1, 1, 0], 'CLSI EP07/EP37 (Interference/Immunoassay)': [2, 1, 2, 1, 1],
-        'Statistical Analysis (JMP/R)': [2, 2, 1, 0, 0], 'Savanna® Platform & Assays': [2, 1, 1, 2, 1],
-        'Sofia® Platform & Assays': [1, 2, 2, 1, 1], 'Vitros® Platform & Assays': [1, 0, 1, 0, 2],
-        'V&V Protocol & Report Authoring': [2, 2, 2, 1, 1], 'Risk Management (ISO 14971)': [2, 2, 1, 1, 0],
-        'Software V&V (IEC 62304)': [2, 1, 0, 0, 0]
-    }
-    df = pd.DataFrame(data, index=['A. Director', 'M. Rodriguez (Mgr)', 'J. Chen (Sr. Specialist)', 'S. Patel (Specialist II)', 'K. Lee (New Hire)'])
-    return df
-
-def generate_reagent_lot_status_data():
-    """Generates status data for critical reagents used in V&V studies with more detail."""
-    today = date.today()
-    data = {
-        'Lot ID': ['SAV-RVP12-24A01', 'SOF-SARS-23C15', 'VIT-HIV-23B09', 'SOF-CTRL-23D11'],
-        'Reagent/Kit': ['Savanna RVP12 Cartridge', 'Sofia SARS FIA Kit', 'Vitros HIV Combo Reagent Pack', 'Universal FIA Control Swab'],
-        'Assigned Project': ['Savanna RVP12 V&V', 'Sofia SARS v2 V&V', 'Vitros HIV V&V', 'All Sofia Studies'],
-        'Status': ['In Use - Qualified', 'Low Inventory', 'Quarantined - Awaiting CoA', 'Expired - Do Not Use'],
-        'Expiry Date': [today + timedelta(days=90), today + timedelta(days=25), today + timedelta(days=180), today - timedelta(days=5)],
-        'Notes': ['Reference lot for all V&V studies.', 'Final LoD studies must complete before expiry.', 'Incoming material. Not released for V&V use.', 'Remove from inventory. Document disposal.']
-    }
-    return pd.DataFrame(data)
-
-def generate_traceability_matrix_data():
-    """Generates data for a detailed Requirements Traceability Matrix."""
-    data = {
-        'Requirement ID': ['URS-001', 'URS-002', 'SRS-005', 'SRS-006', 'Risk-Ctrl-010'],
-        'Requirement Type': ['User Need', 'User Need', 'System Requirement', 'Software Requirement', 'Risk Control Measure'],
-        'Description': [
-            'The Savanna system shall identify Influenza A in a sample.',
-            'The assay result should be available in under 30 minutes.',
-            'The system shall achieve a clinical sensitivity of >95% for Influenza A.',
-            'The software shall flag results with a Ct value > 37 as "indeterminate".',
-            'The assay must not cross-react with high-titer Influenza B samples.'
-        ],
-        'V&V Protocol': ['V&V-PRO-010', 'V&V-PRO-021', 'V&V-PRO-010', 'V&V-PRO-SFT-001', 'V&V-PRO-011'],
-        'Test Case ID': ['TC-LOD-01', 'TC-TIME-01-05', 'TC-SENS-01-50', 'TC-FLAG-01-03', 'TC-SPEC-01-10'],
-        'Test Result': ['Pass', 'Pass', 'Pass', 'Fail', 'Pass'],
-        'V&V Report': ['V&V-RPT-010', 'V&V-RPT-021', 'V&V-RPT-010', 'V&V-RPT-SFT-001', 'V&V-RPT-011']
-    }
-    return pd.DataFrame(data)
-
-def generate_change_control_data():
-    """Generates data for managing post-launch changes via ECOs."""
-    data = {
-        'ECO Number': ['ECO-01234', 'ECO-01255', 'ECO-01260'],
-        'Product Impacted': ['Sofia® 2 SARS Antigen+ FIA', 'Triage® BNPNext™', 'Savanna® RVP12 Assay'],
-        'Change Description': [
-            'Update IFU to include new, validated swab type.',
-            'Qualify second-source supplier for plastic consumable housing.',
-            'Minor software update to improve sample traceability logging (no algorithm change).'
-        ],
-        'V&V Impact Assessment': ['Low. Requires limited V&V to confirm swab equivalency.', 'Medium. Requires full V&V of key performance specs (precision, LoD) with new plastic.', 'Low. Requires targeted software regression testing.'],
-        'Assigned V&V Lead': ['J. Chen', 'M. Rodriguez', 'S. Patel'],
-        'Status': ['V&V Complete', 'V&V in Progress', 'Awaiting V&V Plan']
-    }
-    return pd.DataFrame(data)
+# === NEW DATA GENERATION FOR PROCESS EXCELLENCE & FORECASTING ===
 
 def generate_process_excellence_data():
     """Generates time-series data for monitoring V&V process performance."""
@@ -320,21 +209,34 @@ def generate_process_excellence_data():
         'Deviations_per_100_Test_Hours': deviation_rate
     })
 
+def generate_workload_forecast_data():
+    """Generates historical workload data suitable for Prophet forecasting."""
+    date_rng = pd.date_range(start='2022-01-01', end=date.today(), freq='MS')
+    # Base workload with seasonality and trend
+    workload = 100 + np.arange(len(date_rng)) * 2 + np.sin(np.linspace(0, 8 * np.pi, len(date_rng))) * 15
+    # Add project-based spikes
+    workload[5] += 30; workload[14] += 40; workload[22] += 50
+    workload += np.random.normal(0, 5, len(date_rng))
+    df = pd.DataFrame(date_rng, columns=['ds'])
+    df['y'] = workload.astype(int)
+    return df
+
 def generate_idp_data():
     """Generates data for tracking Individual Development Plans."""
     data = {
-        'Team Member': ['J. Chen', 'S. Patel', 'K. Lee', 'K. Lee'],
+        'Team Member': ['J. Chen', 'S. Patel', 'K. Lee', 'K. Lee', 'V. Kumar'],
         'Development Goal': [
             'Achieve "Expert" rating in Statistical Analysis (JMP/R)',
             'Achieve "Practitioner" rating on Vitros Platform',
             'Achieve "Practitioner" rating on Sofia Platform',
-            'Complete V&V Protocol & Report Authoring Training'
+            'Complete V&V Protocol & Report Authoring Training',
+            'Lead a Major Capital Project Validation (End-to-End)'
         ],
-        'Mentor': ['M. Rodriguez', 'A. Director', 'J. Chen', 'M. Rodriguez'],
-        'Start Date': [date.today() - timedelta(days=30), date.today(), date.today() - timedelta(days=15), date.today()],
-        'Target Date': [date.today() + timedelta(days=150), date.today() + timedelta(days=90), date.today() + timedelta(days=45), date.today() + timedelta(days=75)],
-        'Status': ['In Progress', 'Not Started', 'In Progress', 'Not Started'],
-        'Linked Project': ['Savanna RVP12', 'Vitros HIV Combo 5', 'Sofia SARS v2', 'N/A - Formal Training']
+        'Mentor': ['M. Rodriguez', 'Manager', 'J. Chen', 'M. Rodriguez', 'Manager'],
+        'Start Date': [date.today() - timedelta(days=30), date.today(), date.today() - timedelta(days=15), date.today(), date.today() - timedelta(days=45)],
+        'Target Date': [date.today() + timedelta(days=150), date.today() + timedelta(days=90), date.today() + timedelta(days=45), date.today() + timedelta(days=75), date.today() + timedelta(days=320)],
+        'Status': ['In Progress', 'Not Started', 'In Progress', 'Not Started', 'In Progress'],
+        'Linked Project': ['Savanna RVP12', 'Vitros HIV Combo 5', 'Sofia SARS v2', 'N/A - Formal Training', 'Automated Filler & Capper Line 3']
     }
     df = pd.DataFrame(data)
     df['Start Date'] = pd.to_datetime(df['Start Date'])
