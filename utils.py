@@ -140,6 +140,7 @@ def generate_equipment_pq_data():
             data.append({'Batch': f'PQ_Batch_{i+1}', 'Fill Volume (mL)': val})
     return pd.DataFrame(data)
 
+
 # === REGULATORY & QMS DATA GENERATION ===
 
 def generate_submission_package_data(project_name="Savanna® RVP12 Assay", pathway="510(k)"):
@@ -192,7 +193,8 @@ def generate_validation_program_data():
     df['Days_Until_Due'] = (df['Next_Revalidation_Date'] - pd.to_datetime(date.today())).dt.days
     return df
 
-# === NEW DATA GENERATION FOR PROCESS EXCELLENCE & FORECASTING ===
+
+# === NEW DATA GENERATION FOR PROCESS EXCELLENCE ===
 
 def generate_process_excellence_data():
     """Generates time-series data for monitoring V&V process performance."""
@@ -208,18 +210,6 @@ def generate_process_excellence_data():
         'Report_Rework_Rate_Percent': rework_rate,
         'Deviations_per_100_Test_Hours': deviation_rate
     })
-
-def generate_workload_forecast_data():
-    """Generates historical workload data suitable for Prophet forecasting."""
-    date_rng = pd.date_range(start='2022-01-01', end=date.today(), freq='MS')
-    # Base workload with seasonality and trend
-    workload = 100 + np.arange(len(date_rng)) * 2 + np.sin(np.linspace(0, 8 * np.pi, len(date_rng))) * 15
-    # Add project-based spikes
-    workload[5] += 30; workload[14] += 40; workload[22] += 50
-    workload += np.random.normal(0, 5, len(date_rng))
-    df = pd.DataFrame(date_rng, columns=['ds'])
-    df['y'] = workload.astype(int)
-    return df
 
 def generate_idp_data():
     """Generates data for tracking Individual Development Plans."""
