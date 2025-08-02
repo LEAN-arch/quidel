@@ -10,7 +10,8 @@ st.set_page_config(
 
 # --- Sidebar ---
 with st.sidebar:
-    st.image("https://i.imgur.com/3X6L24F.png", use_column_width=True)
+    # FIX: Replaced deprecated `use_column_width` with `use_container_width`
+    st.image("https://i.imgur.com/3X6L24F.png", use_container_width=True)
     st.title("AssayVantage Executive Briefing")
     st.markdown("---")
     st.success("Select a competency area below.")
@@ -30,44 +31,42 @@ This is not just a report; it's a live demonstration of how to lead a V&V functi
 """)
 
 st.subheader("Core Competency Dashboards")
-st.info("Please use the sidebar to navigate to each detailed dashboard.")
+st.info("Please use the sidebar on the left to navigate to each detailed dashboard.")
 
-# Create a 3x2 grid for better layout
 row1_cols = st.columns(3)
 row2_cols = st.columns(3)
 
+# FIX: Replaced all st.page_link calls with st.markdown to prevent KeyError
 with row1_cols[0]:
     with st.container(border=True):
         st.subheader("🧪 Assay V&V")
         st.markdown("Execution, Traceability, Risk & Compliance Metrics.")
-        st.page_link("pages/01_🧪_Assay_V&V_Metrics.py", label="Explore Assay Metrics →")
+        st.markdown("`Select from sidebar →`")
 with row1_cols[1]:
     with st.container(border=True):
         st.subheader("🏭 Equipment")
         st.markdown("FAT, SAT, IQ, OQ, PQ Validation & Readiness KPIs.")
-        st.page_link("pages/02_🏭_Equipment_Validation_Metrics.py", label="Explore Equipment KPIs →")
+        st.markdown("`Select from sidebar →`")
 with row1_cols[2]:
     with st.container(border=True):
         st.subheader("👥 Team & Project")
         st.markdown("Productivity, Load, Cycle Time & Competency KPIs.")
-        st.page_link("pages/03_👥_Team_&_Project_KPIs.py", label="Explore Management KPIs →")
+        st.markdown("`Select from sidebar →`")
 with row2_cols[0]:
     with st.container(border=True):
         st.subheader("📊 Quality & CI")
         st.markdown("Right-First-Time, CAPA Effectiveness & Recurrence.")
-        st.page_link("pages/04_📊_Quality_&_CI_KPIs.py", label="Explore Quality Metrics →")
+        st.markdown("`Select from sidebar →`")
 with row2_cols[1]:
-    # --- NEW PAGE LINK ---
     with st.container(border=True):
         st.subheader("💻 Software V&V")
         st.markdown("IEC 62304, Risk-Based Testing & Part 11 Compliance.")
-        st.page_link("pages/05_💻_Software_V&V_(IEC_62304).py", label="Explore Software V&V →")
+        st.markdown("`Select from sidebar →`")
 with row2_cols[2]:
     with st.container(border=True):
         st.subheader("📐 Statistical Methods")
         st.markdown("Interactive workbench for ANOVA, SPC, Regression, etc.")
-        st.page_link("pages/06_📐_Advanced_Statistical_Methods.py", label="Explore Statistical Tools →")
-
+        st.markdown("`Select from sidebar →`")
 
 st.markdown("---")
 st.success("Built with Python, Streamlit, and Plotly to demonstrate expertise in creating bespoke digital tools for operational excellence in Life Sciences.")
