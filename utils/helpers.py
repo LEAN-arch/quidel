@@ -1,4 +1,4 @@
-# utils/helpers.py (DEBUG VERSION)
+# utils/helpers.py (CORRECTED)
 
 import streamlit as st
 import pandas as pd
@@ -10,19 +10,36 @@ from scipy import stats
 import statsmodels.formula.api as smf
 from prophet import Prophet
 from prophet.plot import plot_plotly
-# from python_pptx import Presentation  # DEBUG: Temporarily disabled
-# from python_pptx.util import Inches    # DEBUG: Temporarily disabled
+# from python_pptx import Presentation  # Still disabled for debugging
+# from python_pptx.util import Inches    # Still disabled for debugging
 from datetime import datetime, timedelta
 import io
 
+# ... (All other helper functions are correct) ...
+
+def render_login():
+    if 'logged_in' not in st.session_state:
+        st.session_state.logged_in = False
+
+    if not st.session_state.logged_in:
+        st.title("AssayVantage Command Center Login")
+        with st.form("login_form"):
+            st.text_input("Username", value="director", disabled=True)
+            password = st.text_input("Password", type="password")
+            submitted = st.form_submit_button("Login")
+            if submitted:
+                if password == "quidel":
+                    st.session_state.logged_in = True
+                    log_action("director", "User login successful.")
+                    st.rerun()  # <-- CORRECTED FUNCTION CALL
+                else:
+                    st.error("Incorrect password")
+
+# --- PASTE THE REST OF THE (CORRECTED) HELPERS.PY CODE HERE ---
+# (The functions below are unchanged from the last version but are included for completeness)
 def generate_ppt_report(protocol_data, analysis_results, analysis_fig):
     """DEBUG: This feature is temporarily disabled to resolve an environment issue."""
-    # This function is non-operational until the python-pptx library can be installed.
     pass
-
-# --- ALL OTHER HELPER FUNCTIONS REMAIN THE SAME ---
-# (The full code for the rest of the helpers file follows)
-
 def get_mock_team_data():
     return pd.DataFrame({'Member':['Alice','Bob','Charlie','Diana','Edward'],'Role':['V&V Engineer','Sr. V&V Engineer','V&V Specialist','V&V Engineer','Sr. V&V Engineer'],'Capacity (hrs/wk)':[40,40,40,40,40],'Assigned_Hrs':[35,45,38,25,42],'Training_Status':['Compliant','Compliant','Overdue','Compliant','Compliant']})
 def get_mock_projects_data():
@@ -36,15 +53,6 @@ def get_mock_risk_data():
 def load_data(source):
     if'data_loaded'not in st.session_state:
         st.session_state.projects_df=get_mock_projects_data();st.session_state.requirements_df=get_mock_requirements_data();st.session_state.protocols_df=get_mock_protocols_data();st.session_state.risk_df=get_mock_risk_data();st.session_state.team_df=get_mock_team_data();st.session_state.audit_log=[];st.session_state.data_loaded=True;log_action("SYSTEM","Initialized mock data sets.")
-def render_login():
-    if'logged_in'not in st.session_state:st.session_state.logged_in=False
-    if not st.session_state.logged_in:
-        st.title("AssayVantage Command Center Login");
-        with st.form("login_form"):
-            st.text_input("Username",value="director",disabled=True);password=st.text_input("Password",type="password");submitted=st.form_submit_button("Login")
-            if submitted:
-                if password=="quidel":st.session_state.logged_in=True;log_action("director","User login successful.");st.experimental_rerun()
-                else:st.error("Incorrect password")
 def log_action(user,action,details=""):
     if'audit_log'not in st.session_state:st.session_state.audit_log=[]
     st.session_state.audit_log.insert(0,{'Timestamp':datetime.now().strftime('%Y-%m-%d %H:%M:%S'),'User':user,'Action':action,'Details':details})
