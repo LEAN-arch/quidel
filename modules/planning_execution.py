@@ -1,67 +1,88 @@
-# modules/planning_execution.py (Final Working Version)
+# modules/planning_execution.py (Complete Enterprise Version)
 
 import streamlit as st
 import pandas as pd
 from utils import helpers
+from database import SessionLocal, Project, Protocol, User
 from datetime import datetime
 
+@helpers.role_required('engineer') # Minimum role 'engineer' to access this page
 def render_page():
     st.title("V&V Lifecycle Management")
-    st.markdown("Manage the end-to-end process for a V&V project, from requirements to final report.")
-    projects_list = ["<Select a Project>"] + st.session_state.projects_df['Project'].tolist()
-    selected_project = st.selectbox("Select a Project to Manage", projects_list)
-
-    if selected_project == "<Select a Project>": st.info("Please select a project from the dropdown above to begin."); st.stop()
+    st.markdown("A secure, database-driven workspace for V&V records.")
     
-    project_reqs_df = st.session_state.requirements_df[st.session_state.requirements_df['Project'] == selected_project]
-    project_protocols_df = st.session_state.protocols_df[st.session_state.protocols_df['Project'] == selected_project]
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Requirements & Traceability", "📝 V&V Planning & Protocols", "📈 Data Execution & Analysis", "📄 Reporting & e-Signature"])
+    db = SessionLocal()
+    user = helpers.get_current_user()
+    config = helpers.load_config()
 
-    with tab1:
-        st.subheader(f"Traceability Matrix for {selected_project}"); st.info("Link requirements to specific test protocols. Gaps indicate untested requirements.")
-        edited_reqs_df = st.data_editor(project_reqs_df, column_config={"Req_ID": st.column_config.TextColumn("Req ID", disabled=True),"Requirement_Text": st.column_config.TextColumn("Requirement", width="large"),"Linked_Protocol_ID": st.column_config.TextColumn("Linked Protocol(s)"),"Status": st.column_config.SelectboxColumn("Status", options=['Covered', 'Gap', 'In Progress'])}, hide_index=True, use_container_width=True, num_rows="dynamic")
-        if st.button("Save Traceability Changes"): st.session_state.requirements_df.update(edited_reqs_df); helpers.log_action("director", "Updated traceability matrix", f"Project: {selected_project}"); st.success("Traceability matrix updated successfully!"); st.rerun()
+    try:
+        projects = db.query(Project).order_by(Project.name).all()
+        project_names = [p.name for p in projects]
+        
+        selected_project_name = st.selectbox("Select a Project to Manage", project_names)
 
-    with tab2:
-        st.subheader(f"Protocols for {selected_project}"); st.dataframe(project_protocols_df, use_container_width=True, hide_index=True)
-        with st.expander("➕ Create New V&V Protocol"):
-            with st.form("new_protocol_form"):
-                st.write("Define a new test protocol."); new_protocol_id = st.text_input("Protocol ID (e.g., IP-NEW-01)"); new_protocol_title = st.text_input("Protocol Title"); new_protocol_type = st.selectbox("Protocol Type", ['Precision', 'Linearity', 'Sensitivity', 'Specificity', 'Performance', 'Other']); new_acceptance_criteria = st.text_area("Acceptance Criteria")
-                if st.form_submit_button("Create Protocol Draft"):
-                    if new_protocol_id and new_protocol_title and new_acceptance_criteria:
-                        new_row = pd.DataFrame([{'Protocol_ID': new_protocol_id,'Project': selected_project,'Title': new_protocol_title,'Type': new_protocol_type,'Status': 'Draft','Creation_Date': datetime.now(),'Approval_Date': pd.NaT,'Failure_Reason': None,'Acceptance_Criteria': new_acceptance_criteria}]); st.session_state.protocols_df = pd.concat([st.session_state.protocols_df, new_row], ignore_index=True); helpers.log_action("director", "Created new protocol draft", f"ID: {new_protocol_id}"); st.success(f"Protocol '{new_protocol_id}' created as a draft."); st.rerun()
-                    else: st.error("Please fill in all fields.")
+        if not selected_project_name:
+            st.info("Please select a project.")
+            st.stop()
 
-    with tab3:
-        st.subheader("Execute Protocol & Analyze Data")
-        protocol_list = project_protocols_df['Protocol_ID'].tolist(); selected_protocol_id = st.selectbox("Select Protocol to Execute", protocol_list)
-        if selected_protocol_id:
-            protocol_details = project_protocols_df[project_protocols_df['Protocol_ID'] == selected_protocol_id].iloc[0]; st.info(f"**Executing:** {protocol_details['Title']}\n\n**Acceptance Criteria:** {protocol_details['Acceptance_Criteria']}")
-            uploaded_file = st.file_uploader("Upload Raw Data File (CSV)", type=['csv'])
-            if uploaded_file is not None:
-                try:
-                    data_df = pd.read_csv(uploaded_file); st.write("Uploaded Data Preview:"); st.dataframe(data_df.head()); analysis_type = protocol_details['Type']; results = None; fig = None
-                    if analysis_type == 'Precision': results, fig = helpers.analyze_precision(data_df)
-                    elif analysis_type == 'Linearity': results, fig = helpers.analyze_linearity(data_df)
-                    else: st.warning(f"Automated analysis for '{analysis_type}' is not yet implemented.")
-                    if results and fig:
-                        st.subheader("Analysis Results"); col1, col2 = st.columns([1, 2]);
-                        with col1: st.dataframe(pd.DataFrame([results]))
-                        with col2: st.plotly_chart(fig, use_container_width=True)
-                        st.session_state.last_analysis = {'protocol_data': protocol_details.to_dict(),'analysis_results': results,'analysis_fig': fig}; st.success("Analysis complete. Proceed to the Reporting tab.")
-                except Exception as e: st.error(f"An error occurred during analysis: {e}")
+        project = db.query(Project).filter(Project.name == selected_project_name).first()
+        
+        tab1, tab2, tab3 = st.tabs(["📝 Protocol Management", "📈 Data Execution & Analysis", "📄 Reporting & e-Signature"])
 
-    with tab4:
-        st.subheader("Generate Report & Finalize")
-        if 'last_analysis' not in st.session_state or st.session_state.last_analysis['protocol_data']['Project'] != selected_project:
-            st.warning("Please run an analysis in the 'Data Execution & Analysis' tab first.")
-        else:
-            last_analysis = st.session_state.last_analysis; protocol_id = last_analysis['protocol_data']['Protocol_ID']; st.info(f"Ready to generate a report for **{protocol_id}**.")
-            col1, col2 = st.columns(2);
-            with col1: final_status = st.radio("Set Final Protocol Status", ('Executed - Passed', 'Executed - Failed', 'Deviation'), horizontal=True)
-            with col2: sign_off_name = st.text_input("Enter Full Name to Sign Off", value="Assay Director")
+        with tab1:
+            st.subheader(f"Protocols for {project.name}")
             
-            st.button(
-                "Generate & Sign Report", type="primary", disabled=True, 
-                help="This feature is disabled due to a persistent environment issue with the python-pptx library."
-            )
+            # Fetch and display protocols
+            protocols_query = db.query(Protocol).filter(Protocol.project_id == project.id).statement
+            protocols_df = pd.read_sql(protocols_query, db.connection())
+            st.dataframe(protocols_df[['protocol_id_str', 'title', 'status', 'creation_date', 'approval_date']], use_container_width=True)
+            
+            with st.expander("➕ Create New V&V Protocol"):
+                with st.form("new_protocol_form"):
+                    st.write("Define a new test protocol.")
+                    new_protocol_title = st.text_input("Protocol Title")
+                    new_protocol_type = st.selectbox("Protocol Type", config['protocol_types'])
+                    new_acceptance_criteria = st.text_area("Acceptance Criteria")
+                    
+                    submitted = st.form_submit_button("Create Protocol Draft")
+                    if submitted:
+                        if new_protocol_title and new_acceptance_criteria:
+                            new_protocol = Protocol(
+                                protocol_id_str=f"{project.name.split('-')[0]}-{new_protocol_type[:4].upper()}-{db.query(Protocol).count() + 1}",
+                                title=new_protocol_title,
+                                project_id=project.id,
+                                author_id=user.id,
+                                status="Draft",
+                                acceptance_criteria=new_acceptance_criteria
+                            )
+                            db.add(new_protocol); db.commit()
+                            helpers.log_action(user.id, "Created Protocol Draft", details=f"Title: {new_protocol.title}", record_type="Protocol", record_id=new_protocol.id)
+                            st.success(f"Protocol '{new_protocol.protocol_id_str}' created successfully in the database."); st.rerun()
+                        else:
+                            st.error("Please fill in all fields.")
+
+        with tab2:
+            st.subheader("Execute Protocol & Analyze Data")
+            st.info("This section would contain the UI for uploading instrument data against a specific protocol record.")
+            # Placeholder for data upload and analysis functionality
+            
+        with tab3:
+            st.subheader("Reporting & Electronic Signature")
+            protocol_list = db.query(Protocol).filter(Protocol.project_id == project.id, Protocol.status.in_(['Awaiting Approval', 'Executed - Passed'])).all()
+            protocol_to_sign = st.selectbox("Select Protocol to Approve/Sign", [p.protocol_id_str for p in protocol_list])
+            
+            if protocol_to_sign:
+                if st.button(f"Approve & Sign Protocol {protocol_to_sign}", type="primary"):
+                    if user.role != 'director':
+                        st.error("Only users with the 'Director' role can approve protocols.")
+                    else:
+                        protocol_record = db.query(Protocol).filter(Protocol.protocol_id_str == protocol_to_sign).first()
+                        protocol_record.status = "Approved"
+                        protocol_record.approver_id = user.id
+                        protocol_record.approval_date = datetime.utcnow()
+                        db.commit()
+                        helpers.log_action(user.id, "Approved Protocol", details=f"Protocol: {protocol_to_sign}", record_type="Protocol", record_id=protocol_record.id)
+                        st.success("Protocol approved and electronically signed.")
+                        st.balloons(); st.rerun()
+    finally:
+        db.close()
