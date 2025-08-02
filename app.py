@@ -21,7 +21,7 @@ risks_df = generate_risk_management_data()
 st.title("⚕️ Assay V&V Command Center | QuidelOrtho")
 st.markdown("### A Centralized Hub for V&V Portfolio Management, Risk Mitigation, and Regulatory Compliance")
 
-# --- KPIs: Director-Level Oversight Metrics (IMPROVED) ---
+# --- KPIs: Director-Level Oversight Metrics ---
 st.header("Executive V&V Portfolio Health")
 total_projects = len(projects_df)
 active_vv_projects = projects_df[projects_df['V&V Phase'].isin(['Execution', 'Data Analysis'])].shape[0]
@@ -36,7 +36,7 @@ col4.metric("Residual Risks in 'Action Required' Zone", f"{high_impact_risks}", 
 
 st.divider()
 
-# --- Main Content Area (IMPROVED VISUALIZATIONS) ---
+# --- Main Content Area (ENHANCED for V&V Planning) ---
 col1, col2 = st.columns((2, 1.2))
 
 with col1:
@@ -105,7 +105,7 @@ with col2:
 st.header("V&V Portfolio: Detailed View & Status")
 st.dataframe(projects_df, use_container_width=True, hide_index=True)
 
-# --- REGULATORY CONTEXT (IMPROVED) ---
+# --- REGULATORY CONTEXT (EXTENDED) ---
 st.divider()
 with st.expander("🌐 Director's Mandate: The 'Why' Behind This Dashboard", expanded=True):
     st.markdown("""
@@ -113,15 +113,15 @@ with st.expander("🌐 Director's Mandate: The 'Why' Behind This Dashboard", exp
 
     #### **How This Dashboard Demonstrates a State of Control:**
 
-    - **Strategic Planning & Resource Management (21 CFR 820.30(b)):**
-        - The **Portfolio Gantt Chart** is my primary tool for Design and Development Planning. It provides a dynamic, forward-looking view of all V&V workstreams, enabling me to allocate personnel effectively, anticipate resource constraints, and ensure that our activities align with critical business and regulatory submission deadlines.
+    - **V&V Planning & Strategy (ISO 13485:2016, 7.3.5 & 7.3.6):**
+        - The **Portfolio Gantt Chart** is my primary tool for Design and Development Planning. It provides a dynamic, forward-looking view of all V&V workstreams, enabling me to allocate personnel effectively, anticipate resource constraints, and ensure that our activities align with critical business and regulatory submission deadlines. This directly supports the creation of the overarching **V&V Master Plan (VVMP)** for each project.
 
-    - **Risk Management Leadership (ISO 14971:2019 & 21 CFR 820.30(g)):**
-        - The **Integrated Risk Management Dashboard** is our live Risk Management File summary. It is a direct output of our risk analysis process, where we identify potential hazards, estimate and evaluate the associated risks, and control these risks. The 'Unacceptable Region' immediately flags where my team's mitigation efforts must be focused to reduce risk "As Low As Reasonably Practicable" (ALARP).
+    - **Risk-Based V&V (ISO 14971:2019 & 21 CFR 820.30(g)):**
+        - The **Integrated Risk Management Dashboard** is our live Risk Management File summary. It is a direct output of our risk analysis process (e.g., FMEAs), where we identify potential hazards, estimate and evaluate the associated risks, and control these risks. The 'Unacceptable Region' immediately flags where my team's mitigation efforts and V&V testing depth must be focused to reduce risk "As Low As Reasonably Practicable" (ALARP).
 
     - **Executive Oversight & Management by Exception:**
         - The **Executive KPIs** distill the complex status of the entire portfolio into actionable insights. They allow me to immediately identify projects that are off-track or risks that have breached our action thresholds, enabling me to manage by exception and focus my attention where it is most needed.
 
-    - **Audit Readiness & Traceability:**
-        - This dashboard, in its entirety, serves as a master index for our V&V-related Design History File (DHF) contributions. It provides a clear, traceable line from project initiation to risk management to final status, demonstrating a robust and controlled V&V system to any auditor or inspector.
+    - **Regulatory Strategy Alignment (FDA 510(k), PMA & EU IVDR):**
+        - This dashboard is designed from the ground up to be "audit-ready." It serves as a master index for our V&V-related Design History File (DHF) contributions and ensures alignment of V&V evidence with the specific requirements of different regulatory pathways, including the General Safety and Performance Requirements (GSPRs) of IVDR.
     """)
