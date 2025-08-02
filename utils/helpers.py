@@ -1,4 +1,4 @@
-# utils/helpers.py (Final Version)
+# utils/helpers.py (Final Production Version)
 
 import streamlit as st
 import pandas as pd
@@ -14,32 +14,8 @@ from python_pptx import Presentation
 from python_pptx.util import Inches
 from datetime import datetime, timedelta
 import io
+import zipfile
 
-# This function is now fully enabled
-def generate_ppt_report(protocol_data, analysis_results, analysis_fig):
-    """Generates a PowerPoint summary report."""
-    prs = Presentation()
-    slide = prs.slides.add_slide(prs.slide_layouts[0])
-    slide.shapes.title.text = "Verification & Validation Summary Report"
-    slide.placeholders[1].text = f"Protocol: {protocol_data['Protocol_ID']} - {protocol_data['Title']}"
-
-    slide = prs.slides.add_slide(prs.slide_layouts[1])
-    slide.shapes.title.text = "Protocol Summary"
-    txBox = slide.shapes.add_textbox(Inches(0.5), Inches(1.5), Inches(9.0), Inches(5.5)); tf = txBox.text_frame; tf.clear()
-    tf.paragraphs[0].text = f"Project: {protocol_data['Project']}"; tf.add_paragraph().text = f"Acceptance Criteria: {protocol_data['Acceptance_Criteria']}"
-    p_status = tf.add_paragraph(); p_status.text = f"Status: {protocol_data['Status']}"; p_status.space_before = Inches(0.2)
-    p_results_header = tf.add_paragraph(); p_results_header.text = "Execution Results:"; p_results_header.space_before = Inches(0.5)
-    for key, value in analysis_results.items():
-        p = tf.add_paragraph(); p.text = f"  • {key}: {value}"; p.level = 1
-
-    slide = prs.slides.add_slide(prs.slide_layouts[5]); slide.shapes.title.text = "Graphical Analysis"
-    img_bytes = io.BytesIO(); analysis_fig.write_image(img_bytes, format='png', scale=2); img_bytes.seek(0)
-    slide.shapes.add_picture(img_bytes, Inches(1.0), Inches(1.5), width=Inches(8.0))
-
-    ppt_io = io.BytesIO(); prs.save(ppt_io); ppt_io.seek(0)
-    return ppt_io
-
-# --- ALL OTHER HELPER FUNCTIONS REMAIN THE SAME ---
 def get_mock_team_data():
     return pd.DataFrame({'Member':['Alice','Bob','Charlie','Diana','Edward'],'Role':['V&V Engineer','Sr. V&V Engineer','V&V Specialist','V&V Engineer','Sr. V&V Engineer'],'Capacity (hrs/wk)':[40,40,40,40,40],'Assigned_Hrs':[35,45,38,25,42],'Training_Status':['Compliant','Compliant','Overdue','Compliant','Compliant']})
 def get_mock_projects_data():
@@ -71,6 +47,29 @@ def analyze_linearity(data_df):
     if 'Expected' not in data_df.columns or 'Observed' not in data_df.columns: return None, "Error: 'Expected' and 'Observed' columns not found."
     model = smf.ols('Observed ~ Expected', data=data_df).fit(); results = {'N': len(data_df),'Slope': f"{model.params['Expected']:.4f}",'Intercept': f"{model.params['Intercept']:.4f}",'R-squared': f"{model.rsquared:.4f}"}
     fig = px.scatter(data_df, x='Expected', y='Observed', title='Linearity Plot',trendline='ols', trendline_color_override='red'); return results, fig
+def generate_ppt_report(protocol_data, analysis_results, analysis_fig):
+    prs=Presentation();slide=prs.slides.add_slide(prs.slide_layouts[0]);slide.shapes.title.text="Verification & Validation Summary Report";slide.placeholders[1].text=f"Protocol: {protocol_data['Protocol_ID']} - {protocol_data['Title']}"
+    slide=prs.slides.add_slide(prs.slide_layouts[1]);slide.shapes.title.text="Protocol Summary";txBox=slide.shapes.add_textbox(Inches(0.5),Inches(1.5),Inches(9.0),Inches(5.5));tf=txBox.text_frame;tf.clear()
+    tf.paragraphs[0].text=f"Project: {protocol_data['Project']}";tf.add_paragraph().text=f"Acceptance Criteria: {protocol_data['Acceptance_Criteria']}"
+    p_status=tf.add_paragraph();p_status.text=f"Status: {protocol_data['Status']}";p_status.space_before=Inches(0.2)
+    p_results_header=tf.add_paragraph();p_results_header.text="Execution Results:";p_results_header.space_before=Inches(0.5)
+    for key,value in analysis_results.items():
+        p=tf.add_paragraph();p.text=f"  • {key}: {value}";p.level=1
+    slide=prs.slides.add_slide(prs.slide_layouts[5]);slide.shapes.title.text="Graphical Analysis";img_bytes=io.BytesIO();analysis_fig.write_image(img_bytes,format='png',scale=2);img_bytes.seek(0)
+    slide.shapes.add_picture(img_bytes,Inches(1.0),Inches(1.5),width=Inches(8.0));ppt_io=io.BytesIO();prs.save(ppt_io);ppt_io.seek(0);return ppt_io
+def create_submission_zip(project_name, project_reqs, project_protocols, project_risks):
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        plan_content=f"Verification & Validation Plan\nProject: {project_name}\n\nThis document outlines the V&V strategy, resources, and schedule for the project.\n(This is an auto-generated placeholder document from the AssayVantage Command Center).";zip_file.writestr(f"{project_name}_V&V_Plan.txt",plan_content)
+        if not project_risks.empty:risk_csv=project_risks.to_csv(index=False);zip_file.writestr(f"{project_name}_Risk_Management_File.csv",risk_csv)
+        if not project_reqs.empty:reqs_csv=project_reqs.to_csv(index=False);zip_file.writestr(f"{project_name}_Traceability_Matrix.csv",reqs_csv)
+        executed_protocols=project_protocols[project_protocols['Status'].str.contains("Executed",na=False)]
+        if not executed_protocols.empty:
+            reports_folder="V&V_Summary_Reports/"
+            for index,protocol_row in executed_protocols.iterrows():
+                mock_results={'Status':protocol_row['Status'],'Signed Off By':protocol_row.get('Signed_Off_By','N/A'),'Note':'Auto-generated from submission bundle.'};mock_fig=go.Figure().update_layout(title_text="Data Plot Placeholder")
+                ppt_buffer=generate_ppt_report(protocol_row.to_dict(),mock_results,mock_fig);report_filename=f"{reports_folder}{protocol_row['Protocol_ID']}_Summary_Report.pptx";zip_file.writestr(report_filename,ppt_buffer.getvalue())
+    zip_buffer.seek(0);return zip_buffer
 def calculate_kpis(protocols_df,team_df):
     protocols_df['Creation_Date']=pd.to_datetime(protocols_df['Creation_Date'],errors='coerce');protocols_df['Approval_Date']=pd.to_datetime(protocols_df['Approval_Date'],errors='coerce');valid_dates=protocols_df.dropna(subset=['Creation_Date','Approval_Date']);cycle_time=(valid_dates['Approval_Date']-valid_dates['Creation_Date']).dt.days;avg_cycle_time=cycle_time.mean();total_reviewed=len(protocols_df[protocols_df['Status'].isin(['Executed - Passed','Executed - Failed','Approved','Rejected'])]);rejected_count=len(protocols_df[protocols_df['Status']=='Rejected']);rejection_rate=(rejected_count/total_reviewed)*100 if total_reviewed>0 else 0;executed=protocols_df[protocols_df['Status'].str.contains("Executed",na=False)];failed_tests=len(executed[executed['Status']=='Executed - Failed']);failure_rate=(failed_tests/len(executed))*100 if len(executed)>0 else 0;team_df['Utilization']=(team_df['Assigned_Hrs']/team_df['Capacity (hrs/wk)'])*100;avg_utilization=team_df['Utilization'].mean();return{"avg_cycle_time":f"{avg_cycle_time:.1f} days","rejection_rate":f"{rejection_rate:.1f}%","failure_rate":f"{failure_rate:.1f}%","avg_utilization":f"{avg_utilization:.0f}%"}
 def create_enhanced_gantt(df):
