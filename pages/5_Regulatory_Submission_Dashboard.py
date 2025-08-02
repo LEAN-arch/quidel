@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import numpy as np  # CORRECTED: Added this import
 from utils import generate_vv_project_data, generate_submission_package_data
 
 st.set_page_config(
