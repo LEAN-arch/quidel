@@ -3,27 +3,28 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 from utils import (generate_linearity_data_immunoassay, generate_precision_data_clsi_ep05,
-                   generate_analytical_specificity_data_molecular, generate_lot_to_lot_data, calculate_anova)
+                   generate_analytical_specificity_data_molecular, generate_lot_to_lot_data, calculate_equivalence)
 import statsmodels.api as sm
+from statsmodels.formula.api import ols
 import numpy as np
 import pandas as pd
 
 st.set_page_config(
-    page_title="V&V Studies Dashboard | QuidelOrtho",
+    page_title="Analytical Studies Dashboard | QuidelOrtho",
     layout="wide"
 )
 
-st.title("📈 V&V Studies Dashboard")
-st.markdown("### Oversight of Key Analytical Performance Studies for Regulatory Submissions")
+st.title("📈 Analytical Performance Studies Dashboard")
+st.markdown("### Data Review and Oversight of Key Verification Studies for Regulatory Submissions")
 
-with st.expander("🌐 Director's View: The Role of V&V Studies in Design Control"):
+with st.expander("🌐 Director's View: The Role of Analytical Verification", expanded=True):
     st.markdown("""
-    As the Associate Director, my oversight of these analytical performance studies is critical. Each study provides the objective evidence required to demonstrate that our new or modified assays meet their design input requirements and are suitable for their intended use. This dashboard serves as a central point for reviewing study data with my team, ensuring data integrity, and confirming that results meet our stringent, pre-defined acceptance criteria before they are compiled into final V&V reports for regulatory submissions (510(k), PMA).
+    This dashboard provides the objective evidence required to verify that our assays meet their design input requirements. My role is to scrutinize this data with my team, ensuring its integrity and confirming that results meet our stringent, pre-defined acceptance criteria. Each "PASS" result on this page becomes a cornerstone of our V&V Summary Reports and, ultimately, our regulatory submissions.
 
-    **Key Regulatory & Quality Imperatives:**
-    - **Verification vs. Validation:** Verification confirms that design outputs meet design inputs (e.g., Does the assay detect down to 10 copies/mL as required?). Validation ensures the product meets user needs (e.g., Does the assay work correctly with real patient samples in a clinical setting?). The studies here are primarily for **analytical verification**.
-    - **21 CFR 820.30(f) - Design Verification:** "Each manufacturer shall establish and maintain procedures for verifying the device design... The results of the design verification, including identification of the design, method(s), the date, and the individual(s) performing the verification, shall be documented in the DHF."
-    - **CLSI Guidelines:** Our study designs, execution, and data analysis follow internationally recognized standards from the Clinical and Laboratory Standards Institute (e.g., **EP05** for Precision, **EP06** for Linearity, **EP17** for LoD), which are expected by regulatory bodies like the FDA.
+    **Key Regulatory & Quality Frameworks:**
+    - **21 CFR 820.30(f) - Design Verification:** This entire page is a testament to this regulation, providing documented evidence that we have confirmed design outputs meet design inputs. The methods, results, and analyses shown here are documented in the Design History File (DHF).
+    - **CLSI Guidelines (EP05, EP06, EP07, EP17):** Our study designs and acceptance criteria are harmonized with these globally recognized standards, ensuring our data is robust and defensible during FDA review. For example, precision studies follow the **CLSI EP05-A3** framework, which is the industry gold standard.
+    - **Risk Management (ISO 14971):** The results of these studies directly inform our risk management file. For example, an LoD result confirms our control over sensitivity risks, while a cross-reactivity study confirms control over specificity risks.
     """)
 
 # --- Data Generation ---
@@ -34,143 +35,172 @@ lot_df = generate_lot_to_lot_data()
 
 # --- Page Tabs ---
 tab1, tab2, tab3, tab4 = st.tabs([
-    "**Precision (CLSI EP05)**",
-    "**Analytical Specificity (Molecular)**",
-    "**Linearity (Immunoassay)**",
-    "**Lot-to-Lot Comparability**"
+    "**Precision & Reproducibility (CLSI EP05)**",
+    "**Analytical Specificity (Inclusivity/Exclusivity)**",
+    "**Assay Linearity / Measuring Interval (CLSI EP06)**",
+    "**Lot-to-Lot Equivalence (TOST)**"
 ])
 
 with tab1:
-    st.header("Assay Precision (Following CLSI EP05)")
-    st.caption("Example: Reproducibility study for the Sofia® 2 SARS Antigen+ FIA v2 assay.")
+    st.header("Precision & Reproducibility (CLSI EP05)")
+    st.caption("Example: 5-day, 2-run, 3-replicate study for the Sofia® 2 SARS Antigen+ FIA v2 assay.")
 
-    with st.expander("🔬 **Study Design & Acceptance Criteria**"):
+    with st.expander("🔬 Study Design & Acceptance Criteria"):
         st.markdown("""
         #### Study Design (CLSI EP05-A3)
-        To evaluate **reproducibility**, two levels of control material (Low & High Positive) are tested over 5 days, with 2 runs per day, and 3 replicates per run. This nested design allows us to decompose the total variation into components: within-run, between-run, and between-day. This is a standard industry practice for regulatory submissions.
-
-        #### Acceptance Criteria
-        - The primary metric is the **Coefficient of Variation (%CV)**.
-        - For this assay, the V&V plan specifies: **Total %CV must be ≤ 15%** for the Low Positive control and **≤ 10%** for the High Positive control.
-        - The V&V report must include a statistical analysis of all variance components.
+        To evaluate **reproducibility**, two levels of control material are tested over 5 days, with 2 runs per day, and 3 replicates per run. This nested design allows for the statistical decomposition of total variation into its core components.
+        
+        #### Statistical Method: Analysis of Variance (ANOVA)
+        A nested ANOVA model is used to estimate the variance contributed by each factor: Day (between-day), Run (between-run, within-day), and Repeatability (within-run).
+        
+        #### Acceptance Criteria (from V&V Plan)
+        - The primary metric is the **Total Reproducibility %CV**.
+        - **Low Positive Control (Near Cutoff):** Total %CV must be **≤ 20%**.
+        - **Moderate Positive Control:** Total %CV must be **≤ 15%**.
         """)
     
-    control_level = st.selectbox("Select Control Level to Analyze", precision_df['Control'].unique())
+    control_level = st.selectbox("Select Control Level to Analyze", precision_df['Control'].unique(), key='precision_select')
+    filtered_df = precision_df[precision_df['Control'] == control_level].copy()
     
-    filtered_df = precision_df[precision_df['Control'] == control_level]
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        fig = px.box(filtered_df, x="Day", y="S/CO Ratio", title=f"Precision for {control_level} Control", points="all")
+        st.plotly_chart(fig, use_container_width=True)
 
-    fig = px.box(filtered_df, x="Day", y="S/CO Ratio", title=f"Precision for {control_level} Control: S/CO Ratio by Day", points="all")
-    st.plotly_chart(fig, use_container_width=True)
+    with col2:
+        st.subheader("Analysis of Variance (ANOVA) Results")
+        try:
+            # Fit nested ANOVA model
+            model = ols('Q("S/CO Ratio") ~ C(Day) + C(Run):C(Day)', data=filtered_df).fit()
+            anova_table = sm.stats.anova_lm(model, typ=2)
+            
+            # Estimate variance components
+            vc = {
+                'Repeatability (Within-Run)': model.scale,
+                'Between-Run': (model.mse_model - anova_table.loc['C(Run):C(Day)', 'mean_sq']) / (filtered_df['Run'].nunique() * filtered_df.groupby(['Day', 'Run']).size().mean()),
+                'Between-Day': (anova_table.loc['C(Day)', 'mean_sq'] - model.mse_model) / (filtered_df['Day'].nunique() * filtered_df['Run'].nunique() * filtered_df.groupby(['Day', 'Run']).size().mean())
+            }
+            vc['Between-Run'] = max(0, vc['Between-Run']) # Variance cannot be negative
+            vc['Between-Day'] = max(0, vc['Between-Day'])
 
-    # Calculate CVs
-    within_run_cv = filtered_df.groupby(['Day', 'Run'])['S/CO Ratio'].std().mean() / filtered_df['S/CO Ratio'].mean() * 100
-    total_precision_cv = filtered_df['S/CO Ratio'].std() / filtered_df['S/CO Ratio'].mean() * 100
-    
-    acceptance_cv = 15 if control_level == 'Low Positive' else 10
+            vc_df = pd.DataFrame.from_dict(vc, orient='index', columns=['Variance'])
+            vc_df['% Contribution'] = (vc_df['Variance'] / vc_df['Variance'].sum() * 100).round(1)
+            vc_df['Std. Dev.'] = np.sqrt(vc_df['Variance'])
+            st.dataframe(vc_df, use_container_width=True)
+            
+            total_variance = vc_df['Variance'].sum()
+            total_std_dev = np.sqrt(total_variance)
+            mean_val = filtered_df['S/CO Ratio'].mean()
+            total_cv = (total_std_dev / mean_val) * 100
+            
+            acceptance_cv = 20 if "Low Positive" in control_level else 15
+            st.metric(f"Total Reproducibility CV vs. Acceptance (≤{acceptance_cv}%)", f"{total_cv:.2f}%")
 
-    col1, col2 = st.columns(2)
-    col1.metric("Repeatability (Within-Run CV%)", f"{within_run_cv:.2f}%")
-    col2.metric(f"Reproducibility (Total CV%) vs. Acceptance (≤{acceptance_cv}%)", f"{total_precision_cv:.2f}%")
-    
-    if total_precision_cv <= acceptance_cv:
-        st.success(f"**PASS:** The Total CV of {total_precision_cv:.2f}% meets the acceptance criterion of ≤ {acceptance_cv}%.")
-    else:
-        st.error(f"**FAIL:** The Total CV of {total_precision_cv:.2f}% exceeds the acceptance criterion of ≤ {acceptance_cv}%. An investigation is required.")
-
+            if total_cv <= acceptance_cv:
+                st.success(f"**PASS:** The Total CV of {total_cv:.2f}% meets the acceptance criterion of ≤ {acceptance_cv}%.")
+            else:
+                st.error(f"**FAIL:** The Total CV of {total_cv:.2f}% exceeds the acceptance criterion of ≤ {acceptance_cv}%. Investigation into variance components is required.")
+        except Exception as e:
+            st.error(f"ANOVA calculation failed. Check data structure. Error: {e}")
 
 with tab2:
-    st.header("Analytical Specificity (Cross-Reactivity)")
+    st.header("Analytical Specificity (Cross-Reactivity & Interference)")
     st.caption("Example: Inclusivity & exclusivity testing for the Savanna® RVP12 molecular assay.")
 
-    with st.expander("🔬 **Study Design & Acceptance Criteria**"):
+    with st.expander("🔬 Study Design & Acceptance Criteria"):
         st.markdown("""
         #### Study Design
-        **Analytical Specificity** confirms the assay only detects the target analyte. For a multiplex respiratory panel, this is critical. The study involves testing:
-        1.  **Inclusivity:** A panel of target organisms (e.g., various Influenza A strains) to ensure they are all detected.
-        2.  **Exclusivity (Cross-Reactivity):** A panel of high-concentration, related but distinct organisms (e.g., other respiratory viruses) to ensure they are *not* detected.
-
+        This study confirms the assay's ability to exclusively detect its intended targets.
+        1.  **Inclusivity:** A panel of representative target strains are tested to ensure they are all correctly identified.
+        2.  **Exclusivity (Cross-Reactivity):** A panel of high-concentration, related but non-target organisms are tested to ensure they do not produce a positive result.
+        
         #### Acceptance Criteria
-        - **100%** of inclusivity panel strains must be detected.
-        - **100%** of exclusivity panel organisms must return a negative result. Any positive result is a failure and requires immediate root cause investigation.
+        - **100%** of inclusivity panel strains must be detected at the expected concentration.
+        - **0%** of exclusivity panel organisms should be detected. Any confirmed positive result is a failure and requires root cause investigation and risk assessment per ISO 14971.
         """)
     
     st.dataframe(specificity_df, use_container_width=True, hide_index=True)
-
-    # Analysis
-    target_df = specificity_df[specificity_df['Sample Type'] == 'Influenza A']
-    target_pass = target_df['Result'].eq('Positive').all()
-
-    off_target_df = specificity_df[~specificity_df['Sample Type'].isin(['Influenza A', 'Negative Control'])]
-    cross_react_failures = off_target_df[off_target_df['Result'] == 'Positive']
+    cross_react_failures = specificity_df[specificity_df['Notes'].str.contains("Potential Cross-reactivity")]
     
     st.subheader("Specificity Performance Summary")
-    col1, col2 = st.columns(2)
-    col1.metric("Inclusivity Result (Influenza A)", "PASS" if target_pass else "FAIL")
-    col2.metric("Cross-Reactivity Failures", f"{len(cross_react_failures)}", delta=f"{len(cross_react_failures)} Failures", delta_color="inverse")
-    
     if not cross_react_failures.empty:
-        st.error("**FAIL:** A cross-reactivity failure was detected. This is a critical issue that could lead to false positive patient results and must be resolved before regulatory submission.")
-        st.write("Failure Details:")
+        st.error(f"**FAIL: Potential Cross-Reactivity Detected**")
+        st.write("The following off-target organism produced a positive signal, requiring root cause investigation. This is a critical failure that may impact the 510(k) submission timeline and requires a formal risk assessment.")
         st.dataframe(cross_react_failures)
     else:
-        st.success("**PASS:** No cross-reactivity was detected. The assay meets the specificity requirements.")
+        st.success("**PASS:** No unexpected cross-reactivity was detected. The assay meets all inclusivity and exclusivity requirements specified in the V&V Plan.")
 
 with tab3:
-    st.header("Assay Linearity (Reportable Range)")
-    st.caption("Example: Linearity study for a Vitros® quantitative immunoassay.")
+    st.header("Assay Linearity / Measuring Interval (CLSI EP06)")
+    st.caption("Example: Defining the analytical measuring interval (AMI) for a Vitros® quantitative immunoassay.")
 
-    with st.expander("🔬 **Study Design & Acceptance Criteria**"):
-        st.markdown("""
-        #### Study Design (CLSI EP06)
-        A dilution series of a high-concentration standard is prepared to span the intended measuring interval of the assay. Each dilution is tested to demonstrate that the instrument response is linearly proportional to the analyte concentration.
-
-        #### Acceptance Criteria
-        - A linear regression is performed. The **R-squared (R²)** value must be **≥ 0.98**.
-        - The residuals (difference between observed and predicted values) must be randomly distributed around zero, with no obvious trends.
-        """)
-
-    # Fit linear model (on the linear portion of the curve)
-    model_df = linearity_df[linearity_df['Analyte Concentration (ng/mL)'] <= 250]
-    X = sm.add_constant(model_df['Analyte Concentration (ng/mL)'])
-    model = sm.OLS(model_df['Optical Density (OD)'], X).fit()
-    r_squared = model.rsquared
-
-    fig_lin = px.scatter(linearity_df, x='Analyte Concentration (ng/mL)', y='Optical Density (OD)', 
-                         title="Linearity: OD vs. Analyte Concentration", trendline='lowess', trendline_color_override="red")
-    fig_lin.add_annotation(x=400, y=1.5, text=f"R² (linear range): {r_squared:.4f}", showarrow=False, font=dict(size=14, color="blue"))
-    st.plotly_chart(fig_lin, use_container_width=True)
-    
-    if r_squared >= 0.98:
-        st.success(f"**PASS:** The R-squared value of {r_squared:.4f} meets the acceptance criterion of ≥ 0.98. The assay is linear within the defined reportable range.")
-    else:
-        st.error(f"**FAIL:** The R-squared value of {r_squared:.4f} is below the acceptance criterion of ≥ 0.98. The defined linear range may be too wide or there is an issue with the assay.")
-
-with tab4:
-    st.header("Reagent Lot-to-Lot Comparability")
-    st.caption("Example: Qualifying a new consumable lot for the QuickVue® At-Home OTC COVID-19 Test.")
-
-    with st.expander("🔬 **Study Design & Acceptance Criteria**"):
+    with st.expander("🔬 Study Design & Acceptance Criteria"):
         st.markdown("""
         #### Study Design
-        A new lot of a critical consumable (e.g., test strips) is tested side-by-side with a previously qualified reference lot. A panel of samples at a concentration near the assay cutoff is used, and a key quantitative metric (e.g., Test Line Intensity) is measured.
-
+        A dilution series of a high-concentration standard is tested to characterize the assay's response across a wide range of analyte concentrations.
+        
         #### Acceptance Criteria
-        - A statistical test (e.g., ANOVA or t-test) is performed to compare the lots.
-        - The **P-value** from the test must be **≥ 0.05**, indicating no statistically significant difference between the lots.
-        - A visual review of the box plots should show substantial overlap in the distributions.
+        - The reportable linear range is defined by the concentrations where a linear model provides an adequate fit.
+        - **For the defined linear range:** The coefficient of determination **(R-squared)** must be **≥ 0.990**.
+        - Visual inspection of a **residuals plot** must show no obvious trends or patterns, confirming the appropriateness of the linear model.
+        - The assay response must show clear saturation or a "hook effect" outside the proposed linear range.
         """)
 
-    col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns([1,1])
     with col1:
-        fig_box = px.box(lot_df, x='Reagent Lot ID', y='Test Line Intensity', color='Reagent Lot ID',
-                         title='Comparison of QuickVue® Test Strip Lot Performance', points='all')
+        st.subheader("Assay Response Curve")
+        fig_lin = px.scatter(linearity_df, x='Analyte Concentration (ng/mL)', y='Optical Density (OD)', 
+                            title="Full Range Response Curve", trendline='lowess', trendline_color_override="#F47321")
+        st.plotly_chart(fig_lin, use_container_width=True)
+
+    with col2:
+        st.subheader("Linear Range Analysis")
+        linear_range_max = st.number_input("Define Upper Limit of Linear Range for Analysis (ng/mL)", value=500)
+        model_df = linearity_df[linearity_df['Analyte Concentration (ng/mL)'] <= linear_range_max]
+        X = sm.add_constant(model_df['Analyte Concentration (ng/mL)'])
+        model = sm.OLS(model_df['Optical Density (OD)'], X).fit()
+        r_squared = model.rsquared
+        model_df['Residual'] = model.resid
+
+        fig_res = px.scatter(model_df, x='Analyte Concentration (ng/mL)', y='Residual', title=f"Residuals Plot (R² = {r_squared:.4f})")
+        fig_res.add_hline(y=0, line_dash="dash", line_color="red")
+        st.plotly_chart(fig_res, use_container_width=True)
+
+    if r_squared >= 0.990:
+        st.success(f"**PASS:** The R² of {r_squared:.4f} within the defined range (0-{linear_range_max} ng/mL) meets the acceptance criterion of ≥ 0.990. Residuals are randomly distributed.")
+    else:
+        st.error(f"**FAIL:** The R² of {r_squared:.4f} is below the acceptance criterion. The proposed linear range is not supported by the data.")
+
+with tab4:
+    st.header("New Reagent Lot Qualification by Equivalence")
+    st.caption("Example: Qualifying a new consumable lot for QuickVue® using a Two-One-Sided T-Test (TOST).")
+
+    with st.expander("🔬 Study Design & Acceptance Criteria"):
+        st.markdown("""
+        #### Statistical Method: Equivalence Testing (TOST)
+        Instead of testing for a *difference* (ANOVA), we are testing to prove *similarity*. The **Two-One-Sided T-Test (TOST)** is the industry-standard method. We define an **equivalence margin** (e.g., ±15 intensity units) and test the null hypothesis that the lots are different (i.e., the true difference is outside this margin).
+        
+        #### Acceptance Criteria
+        - The **90% Confidence Interval** of the difference between the lot means must fall entirely within the pre-defined equivalence margins.
+        - The **TOST P-value** must be **< 0.05** to reject the null hypothesis of non-equivalence and therefore claim the lots are equivalent.
+        """)
+
+    col1, col2 = st.columns([1.2, 1])
+    with col1:
+        fig_box = px.box(lot_df, x='Reagent Lot ID', y='Test Line Intensity',
+                         title='Lot-to-Lot Signal Comparison', points='all')
         st.plotly_chart(fig_box, use_container_width=True)
     with col2:
-        st.subheader("Statistical Test (ANOVA)")
-        f_stat, p_value = calculate_anova(lot_df, 'Reagent Lot ID', 'Test Line Intensity')
-        st.metric("ANOVA P-value", f"{p_value:.4f}")
+        st.subheader("Equivalence Test (TOST) Results")
+        low_bound = st.number_input("Lower Equivalence Margin (in intensity units)", value=-15.0, format="%.1f")
+        high_bound = st.number_input("Higher Equivalence Margin (in intensity units)", value=15.0, format="%.1f")
+        
+        p_tost, p_diff = calculate_equivalence(lot_df, 'Reagent Lot ID', 'Test Line Intensity', low_bound, high_bound)
+        
+        st.metric("TOST P-value (for Equivalence)", f"{p_tost:.4f}")
+        st.metric("T-test P-value (for Difference)", f"{p_diff:.4f}", help="Standard t-test p-value shown for reference. High value suggests no evidence of a difference.")
 
-        if p_value >= 0.05:
-            st.success(f"**PASS:** P-value of {p_value:.4f} is ≥ 0.05. There is no statistically significant difference detected. The new lot is acceptable.")
+        if p_tost < 0.05:
+            st.success(f"**PASS: Lots are Statistically Equivalent.** The TOST P-value of {p_tost:.4f} is < 0.05. We can conclude the new lot performs equivalently to the reference lot within the defined margins.")
         else:
-            st.error(f"**FAIL:** P-value of {p_value:.4f} is < 0.05. A statistically significant difference exists between the lots. The new lot must be rejected and an investigation initiated.")
+            st.error(f"**FAIL: Lots are NOT Statistically Equivalent.** The TOST P-value of {p_tost:.4f} is ≥ 0.05. We cannot reject the hypothesis that the lots are different. The new lot fails qualification.")
