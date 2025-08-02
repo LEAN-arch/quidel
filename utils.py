@@ -24,7 +24,7 @@ quidelortho_template = {
 pio.templates["quidelortho_commercial"] = quidelortho_template
 pio.templates.default = "quidelortho_commercial"
 
-# === CORE DATA GENERATION (V&V DIRECTOR'S VIEW - EXTENDED) ===
+# === CORE DATA GENERATION (V&V DIRECTOR'S VIEW - ENHANCED) ===
 
 def generate_vv_project_data():
     """Generates V&V project data reflecting QuidelOrtho's portfolio, including dependencies and milestones."""
@@ -81,7 +81,7 @@ def generate_risk_management_data():
     df['Risk_Score'] = df['Severity'] * df['Probability']
     return df.sort_values(by='Risk_Score', ascending=False)
 
-# === V&V STUDY DATA GENERATION (EXTENDED) ===
+# === V&V STUDY DATA GENERATION (ENHANCED) ===
 
 def generate_linearity_data_immunoassay():
     """Generates realistic linearity data for a quantitative immunoassay, including saturation effects."""
@@ -155,7 +155,47 @@ def calculate_equivalence(df, group_col, value_col, low_eq_bound, high_eq_bound)
     
     return max(p_low, p_high), p_val_diff, mean_diff
 
-# === REGULATORY & QMS DATA GENERATION (EXTENDED) ===
+# === NEW DATA GENERATION FOR ADVANCED VISUALIZATIONS ===
+
+def generate_method_comparison_data():
+    """Generates data for a Bland-Altman plot, comparing a new method to a reference."""
+    np.random.seed(123)
+    n_samples = 100
+    reference_values = np.random.uniform(10, 500, n_samples)
+    # Introduce a slight proportional bias and random error
+    new_method_values = 1.05 * reference_values - 5 + np.random.normal(0, 15, n_samples)
+    return pd.DataFrame({'Reference Method (U/L)': reference_values, 'Candidate Method (U/L)': new_method_values})
+
+def generate_risk_burndown_data():
+    """Generates time-series data for a risk burndown chart."""
+    weeks = pd.to_datetime(pd.date_range(start="2024-01-01", periods=12, freq='W'))
+    high_risks = np.array([5, 5, 4, 4, 3, 2, 2, 1, 1, 1, 0, 0])
+    medium_risks = np.array([10, 11, 11, 10, 9, 9, 8, 6, 5, 4, 3, 2])
+    low_risks = np.array([8, 8, 9, 10, 10, 11, 11, 10, 9, 8, 8, 7])
+    return pd.DataFrame({'Week': weeks, 'High': high_risks, 'Medium': medium_risks, 'Low': low_risks})
+
+def generate_defect_trend_data():
+    """Generates data for a software defect burn-down chart."""
+    days = pd.to_datetime(pd.date_range(start="2024-06-01", periods=30, freq='D'))
+    total_defects = np.cumsum(np.random.randint(0, 3, size=30)) + 5
+    closed_defects = np.cumsum(np.random.randint(0, 2, size=30))
+    closed_defects = np.minimum(closed_defects, total_defects)
+    open_defects = total_defects - closed_defects
+    return pd.DataFrame({'Date': days, 'Open Defects': open_defects, 'Total Defects Found': total_defects})
+
+def calculate_instrument_utilization(schedule_df):
+    """Processes schedule data to calculate utilization stats for a treemap."""
+    schedule_df['Duration'] = (schedule_df['Finish'] - schedule_df['Start']).dt.total_seconds() / 3600
+    platform_map = {
+        'Savanna-V&V-01': 'Savanna', 'Savanna-V&V-02': 'Savanna',
+        'Sofia-V&V-01': 'Sofia', 'Sofia-V&V-02': 'Sofia',
+        'Vitros-DEV-01': 'Vitros'
+    }
+    schedule_df['Platform'] = schedule_df['Instrument'].map(platform_map)
+    util_df = schedule_df.groupby(['Platform', 'Instrument', 'Status'])['Duration'].sum().reset_index()
+    return util_df
+
+# (Other existing functions like generate_submission_package_data, generate_capa_data, etc. remain unchanged from the previous corrected version)
 
 def generate_submission_package_data(project_name="Savanna® RVP12 Assay", pathway="510(k)"):
     """Generates a detailed checklist of V&V deliverables for a regulatory submission package."""
@@ -192,8 +232,6 @@ def generate_capa_data():
         'Due Date': [date.today() - timedelta(days=10), date.today() + timedelta(days=18), date.today() + timedelta(days=40), date.today() + timedelta(days=5)]
     }
     return pd.DataFrame(data)
-
-# === V&V LAB OPERATIONS DATA (EXTENDED) ===
 
 def generate_instrument_schedule_data():
     """Generates a more dynamic schedule for instruments in the V&V lab."""
@@ -234,8 +272,6 @@ def generate_reagent_lot_status_data():
         'Notes': ['Reference lot for all V&V studies.', 'Final LoD studies must complete before expiry.', 'Incoming material. Not released for V&V use.', 'Remove from inventory. Document disposal.']
     }
     return pd.DataFrame(data)
-
-# === NEW DATA GENERATION FOR EXTENDED FEATURES ===
 
 def generate_traceability_matrix_data():
     """Generates data for a detailed Requirements Traceability Matrix."""
