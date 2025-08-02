@@ -18,19 +18,29 @@ pio.templates.default = "quidelortho_sme"
 
 # === CORE DATA GENERATION ===
 def generate_vv_project_data():
+    """Generates enhanced V&V and Validation project data."""
     data = {
         'Project/Assay': ['Savanna® RVP12 Assay', 'Sofia® 2 SARS Antigen+ FIA v2', 'Vitros® HIV Combo 5 Test', 'Automated Filler & Capper Line 3', 'Ortho-Vision® Analyzer SW Patch V&V'],
-        'Type': ['Assay', 'Assay', 'Assay', 'Equipment', 'Software'], 'Platform': ['Savanna', 'Sofia', 'Vitros', 'Manufacturing', 'Ortho-Vision'],
-        'V&V Lead': ['M. Rodriguez', 'J. Chen', 'S. Patel', 'V. Kumar', 'S. Patel'], 'V&V Phase': ['Execution', 'Reporting', 'PQ', 'IQ/OQ', 'Data Analysis'],
-        'Overall Status': ['On Track', 'On Track', 'At Risk', 'On Track', 'Behind Schedule'], 'Regulatory Pathway': ['510(k)', 'EUA Modification', 'PMA Supplement', 'N/A', 'Letter to File'],
+        'Type': ['Assay', 'Assay', 'Assay', 'Equipment', 'Software'],
+        'Platform': ['Savanna', 'Sofia', 'Vitros', 'Manufacturing', 'Ortho-Vision'],
+        'V&V Lead': ['M. Rodriguez', 'J. Chen', 'S. Patel', 'V. Kumar', 'S. Patel'],
+        'V&V Phase': ['Execution', 'Reporting', 'PQ', 'IQ/OQ', 'Data Analysis'],
+        'Overall Status': ['On Track', 'On Track', 'At Risk', 'On Track', 'Behind Schedule'],
+        'Regulatory Pathway': ['510(k)', 'EUA Modification', 'PMA Supplement', 'N/A', 'Letter to File'],
+        # CORRECTED: Added 'Key Milestone' column back to match the visualization's expectation
+        'Key Milestone': ['Final Report for Submission', 'EUA Submission', 'Production Readiness', 'OQ Completion', 'V&V Report for ECO'],
         'Start Date': [date.today() - timedelta(days=60), date.today() - timedelta(days=90), date.today() - timedelta(days=10), date.today() - timedelta(days=45), date.today() - timedelta(days=30)],
         'Due Date': [date.today() + timedelta(days=45), date.today() + timedelta(days=5), date.today() + timedelta(days=60), date.today() + timedelta(days=75), date.today() + timedelta(days=20)],
-        'On Critical Path': [False, True, True, True, False], 'Budget (USD)': [250000, 150000, 500000, 1200000, 75000],
-        'Spent (USD)': [150000, 135000, 350000, 450000, 40000], 'Schedule Performance Index (SPI)': [1.05, 1.10, 0.92, 1.02, 0.98],
-        'First Time Right %': [98, 99, 95, 92, 100], 'Utilization %': [85, 90, 110, 100, 75]
+        'On Critical Path': [False, True, True, True, False],
+        'Budget (USD)': [250000, 150000, 500000, 1200000, 75000],
+        'Spent (USD)': [150000, 135000, 350000, 450000, 40000],
+        'Schedule Performance Index (SPI)': [1.05, 1.10, 0.92, 1.02, 0.98],
+        'First Time Right %': [98, 99, 95, 92, 100],
+        'Utilization %': [85, 90, 110, 100, 75]
     }
     df = pd.DataFrame(data)
-    df['Start Date'] = pd.to_datetime(df['Start Date']); df['Due Date'] = pd.to_datetime(df['Due Date'])
+    df['Start Date'] = pd.to_datetime(df['Start Date'])
+    df['Due Date'] = pd.to_datetime(df['Due Date'])
     return df
 
 def generate_risk_management_data():
