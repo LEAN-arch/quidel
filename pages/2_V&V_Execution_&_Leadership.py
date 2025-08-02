@@ -1,6 +1,7 @@
 # pages/2_V&V_Execution_&_Leadership.py
 import streamlit as st
 import pandas as pd
+from datetime import date, timedelta  # CORRECTED: Added this import
 from utils import generate_vv_project_data, generate_capa_data, generate_change_control_data
 
 st.set_page_config(
