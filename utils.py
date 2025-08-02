@@ -139,7 +139,7 @@ def generate_lot_to_lot_data():
 def calculate_equivalence(df, group_col, value_col, low_eq_bound, high_eq_bound):
     """Performs a Two-One-Sided T-Test (TOST) for equivalence."""
     groups = df[group_col].unique()
-    if len(groups) != 2: return np.nan, np.nan
+    if len(groups) != 2: return np.nan, np.nan, np.nan
     group1 = df[df[group_col] == groups[0]][value_col]
     group2 = df[df[group_col] == groups[1]][value_col]
     t_stat, p_val_diff = stats.ttest_ind(group1, group2, equal_var=False)
