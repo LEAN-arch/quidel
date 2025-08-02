@@ -20,7 +20,6 @@ def render_metric_summary(metric_name, description, viz_function, insight_text, 
             fig = viz_function()
             st.plotly_chart(fig, use_container_width=True)
 
-# --- I. Assay V&V Metrics ---
 def plot_protocol_completion_burndown():
     days = np.arange(1, 31); planned = np.linspace(100, 0, 30); actual = np.clip(planned + np.random.randn(30).cumsum() * 1.5, 0, 100)
     fig = go.Figure(); fig.add_trace(go.Scatter(x=days, y=planned, mode='lines', name='Planned Burndown', line=dict(dash='dash'))); fig.add_trace(go.Scatter(x=days, y=actual, mode='lines+markers', name='Actual Burndown'))
@@ -43,7 +42,6 @@ def plot_rpn_waterfall():
     fig = go.Figure(go.Waterfall(measure = ["relative", "relative", "total", "relative", "relative", "total"], x = ["Initial Risk (FP)", "Mitigation 1", "Subtotal", "Initial Risk (FN)", "Mitigation 2", "Final Risk Portfolio"], y = [120, -40, 0, 80, -60, 0]))
     fig.update_layout(title = "FMEA Risk Reduction (RPN Waterfall)"); return fig
 
-# --- II. Equipment Validation ---
 def plot_validation_gantt_baseline():
     df = pd.DataFrame([dict(Task="FAT", Start='2023-01-01', Finish='2023-01-10', Type="Planned"), dict(Task="FAT", Start='2023-01-01', Finish='2023-01-12', Type="Actual"), dict(Task="SAT", Start='2023-01-15', Finish='2023-01-20', Type="Planned"), dict(Task="SAT", Start='2023-01-18', Finish='2023-01-22', Type="Actual"), dict(Task="IQ", Start='2023-01-21', Finish='2023-01-25', Type="Planned"), dict(Task="IQ", Start='2023-01-23', Finish='2023-01-25', Type="Actual")])
     fig = px.timeline(df, x_start="Start", x_end="Finish", y="Task", color="Type", title="Validation On-Time Rate (Gantt vs Baseline)"); return fig
@@ -52,14 +50,12 @@ def plot_sat_to_pq_violin():
     df = pd.DataFrame({'Days': np.concatenate([np.random.normal(20, 5, 20), np.random.normal(35, 8, 15)]), 'Equipment Type': ['Analyzer'] * 20 + ['Sample Prep'] * 15})
     fig = px.violin(df, y="Days", x="Equipment Type", color="Equipment Type", box=True, points="all", title="Time from SAT to PQ Approval (by Equipment Type)"); return fig
 
-# --- III. Team & Project ---
 def plot_protocol_review_cycle_histogram():
     fig = px.histogram(np.random.gamma(4, 2, 100), title="Protocol Review Cycle Time (Draft to Approved)", labels={'value': 'Days'}); return fig
 
 def plot_training_donut():
     fig = go.Figure(data=[go.Pie(labels=['ISO 13485','GAMP5','21 CFR 820', 'GDP', 'Not Started'], values=[100, 95, 98, 90, 5], hole=.4, title="Training Completion Rate")]); return fig
 
-# --- IV. Quality & CI ---
 def plot_rft_gauge():
     fig = go.Figure(go.Indicator(mode = "gauge+number", value = 82, title = {'text': "Right-First-Time (RFT) Protocol Execution"}, gauge = {'axis': {'range': [None, 100]}, 'bar': {'color': "cornflowerblue"}})); return fig
 
@@ -67,7 +63,6 @@ def plot_capa_funnel():
     fig = go.Figure(go.Funnel(y = ["Identified", "Investigation", "Root Cause Analysis", "Implementation", "Effectiveness Check"], x = [100, 80, 65, 60, 55], textinfo = "value+percent initial"))
     fig.update_layout(title="CAPA Closure Effectiveness Funnel"); return fig
 
-# --- V. Statistical Methods ---
 def run_anova_ttest(add_shift):
     group_a = np.random.normal(10, 2, 30); group_b_mean = 10.5 if not add_shift else 12.5; group_b = np.random.normal(group_b_mean, 2, 30)
     fig = px.box(pd.DataFrame({'Group A': group_a, 'Group B': group_b}), title="Performance Comparison (Lot A vs Lot B)")
@@ -108,10 +103,8 @@ def run_monte_carlo():
     fig = px.histogram(total_times, nbins=50, title="Monte Carlo Simulation of V&V Plan Duration (5000 runs)"); fig.add_vline(x=p90, line_dash="dash", line_color="red", annotation_text=f"P90 = {p90:.1f} days")
     return fig, f"**Conclusion:** While the 'most likely' duration is ~38 days, there is a 10% chance the project will take **{p90:.1f} days or longer**. This P90 value should be used for risk-adjusted planning."
 
-# --- Software V&V ---
 def create_v_model_figure():
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=[1, 2, 3, 4], y=[4, 3, 2, 1], mode='lines+markers+text', text=["User Needs", "System Req.", "Architecture", "Module Design"], textposition="top right", line=dict(color='royalblue', width=2), marker=dict(size=10)))
+    fig = go.Figure(); fig.add_trace(go.Scatter(x=[1, 2, 3, 4], y=[4, 3, 2, 1], mode='lines+markers+text', text=["User Needs", "System Req.", "Architecture", "Module Design"], textposition="top right", line=dict(color='royalblue', width=2), marker=dict(size=10)))
     fig.add_trace(go.Scatter(x=[5, 6, 7, 8], y=[1, 2, 3, 4], mode='lines+markers+text', text=["Unit Test", "Integration Test", "System V&V", "User Validation (UAT)"], textposition="top left", line=dict(color='green', width=2), marker=dict(size=10)))
     for i in range(4): fig.add_shape(type="line", x0=4-i, y0=1+i, x1=5+i, y1=1+i, line=dict(color="grey", width=1, dash="dot"))
     fig.update_layout(title_text="The V-Model for Software Validation (IEC 62304)", showlegend=False, xaxis=dict(showticklabels=False, zeroline=False, showgrid=False), yaxis=dict(showticklabels=False, zeroline=False, showgrid=False)); return fig
