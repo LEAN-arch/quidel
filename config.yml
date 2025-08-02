@@ -1,0 +1,33 @@
+# config.yml
+
+# Application-wide settings
+app_name: "AssayVantage Enterprise"
+logo_url: "https://www.quidelortho.com/etc.clientlibs/quidelortho/clientlibs/clientlib-site/resources/images/logo_white.svg"
+
+# Role-Based Access Control (RBAC) Definitions
+roles:
+  - viewer
+  - engineer
+  - director
+
+# Workflow status options (customizable by the organization)
+protocol_statuses:
+  - Draft
+  - Awaiting Approval
+  - Approved
+  - In Execution
+  - Executed - Passed
+  - Executed - Failed
+  - Rejected
+  - On Hold
+
+# Protocol type options (customizable by the organization)
+protocol_types:
+  - Precision
+  - Linearity
+  - Sensitivity
+  - Specificity
+  - Stability
+  - Cross-Reactivity
+  - Performance
+  - Other
