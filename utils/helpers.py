@@ -1,4 +1,4 @@
-# utils/helpers.py (Final Guaranteed Version)
+# utils/helpers.py (Corrected for KeyError)
 
 import streamlit as st
 import yaml
@@ -14,6 +14,42 @@ from database import SessionLocal, User, AuditLog
 import io
 import zipfile
 
+# ... (All other helper functions are correct and unchanged) ...
+
+def create_enhanced_gantt(df):
+    """
+    Gantt chart with % complete and more details.
+    This function is now robust and handles its own column renaming.
+    """
+    if df.empty:
+        return go.Figure().update_layout(title="Project Portfolio Status & Progress", annotations=[dict(text="No Project Data Available", showarrow=False)])
+    
+    # THE FIX IS HERE: We perform all necessary renaming inside the function
+    gantt_df = df.copy()
+    gantt_df.rename(columns={
+        'name': 'Task',
+        'start_date': 'Start',
+        'finish_date': 'Finish',
+        'Pct_Complete': 'Completion_pct'  # <-- This was the missing rename step
+    }, inplace=True)
+    
+    gantt_df['Completion_pct'] = gantt_df['Completion_pct'] / 100
+    
+    fig = px.timeline(
+        gantt_df,
+        x_start="Start",
+        x_end="Finish",
+        y="Task",
+        color="status",
+        custom_data=['owner_id', 'Completion_pct'],
+        title="Project Portfolio Status & Progress"
+    )
+    fig.update_traces(text=gantt_df['Completion_pct'].apply(lambda x: f'{x:.0%}'), textposition='inside')
+    fig.update_layout(xaxis_title="Timeline", yaxis_title="Project")
+    return fig
+
+# --- PASTE THE REST OF THE (UNCHANGED) HELPERS.PY CODE HERE ---
+# (The functions below are unchanged from the last working version but are included for completeness)
 @st.cache_data
 def load_config():
     with open("config.yml", 'r') as f: return yaml.safe_load(f)
@@ -62,34 +98,27 @@ def analyze_linearity(data_df):
     model = smf.ols('Observed ~ Expected', data=data_df).fit(); results = {'N':len(data_df),'Slope':f"{model.params['Expected']:.4f}",'Intercept':f"{model.params['Intercept']:.4f}",'R-squared':f"{model.rsquared:.4f}"}
     fig = px.scatter(data_df, x='Expected', y='Observed', title='Linearity Plot', trendline='ols', trendline_color_override='red'); return results, fig
 
-def create_enhanced_gantt(df):
-    gantt_df=df.copy();gantt_df.rename(columns={'name':'Task','pct_complete':'Completion_pct', 'start_date':'Start', 'finish_date':'Finish'},inplace=True);gantt_df['Completion_pct']=gantt_df['Completion_pct']/100;fig=px.timeline(gantt_df,x_start="Start",x_end="Finish",y="Task",color="status",custom_data=['owner_id','Completion_pct'],title="Project Portfolio Status & Progress");fig.update_traces(text=gantt_df['Completion_pct'].apply(lambda x:f'{x:.0%}'),textposition='inside');fig.update_layout(xaxis_title="Timeline",yaxis_title="Project");return fig
-
 def create_risk_bubble_chart(risk_df):
+    if risk_df.empty:
+        return go.Figure().update_layout(title="Product Risk Landscape (FMEA)", annotations=[dict(text="No Risk Data Available", showarrow=False)])
     fig=px.scatter(risk_df,x="Severity",y="Occurrence",size="RPN",color="Project",hover_name="Failure_Mode",size_max=60,title="Product Risk Landscape (FMEA)",labels={"Severity":"Severity (Impact)","Occurrence":"Likelihood of Occurrence"});fig.add_shape(type="rect",x0=6.5,y0=3.5,x1=10,y1=10,line=dict(color="Red",width=2,dash="dash"),fillcolor="rgba(255,0,0,0.1)");fig.add_annotation(x=9.5,y=9.5,text="High-Risk Zone",showarrow=False,xanchor='right',yanchor='top');return fig
 
 def generate_text_report(protocol_data, analysis_results):
-    """Generates a downloadable .txt summary report."""
     report_content = f"""
 =================================================
 VERIFICATION & VALIDATION SUMMARY REPORT
 =================================================
-
 Protocol ID:   {protocol_data.get('protocol_id_str', 'N/A')}
 Title:         {protocol_data.get('title', 'N/A')}
 Project:       {protocol_data.get('project_name', 'N/A')}
 Status:        {protocol_data.get('status', 'N/A')}
-
 -------------------------------------------------
 Acceptance Criteria:
 {protocol_data.get('acceptance_criteria', 'N/A')}
 -------------------------------------------------
-
 Execution Results:
 """
-    for key, value in analysis_results.items():
-        report_content += f"- {key}: {value}\n"
-    
+    for key, value in analysis_results.items(): report_content += f"- {key}: {value}\n"
     report_content += f"""
 -------------------------------------------------
 Electronically Signed By: {protocol_data.get('signed_by', 'N/A')}
