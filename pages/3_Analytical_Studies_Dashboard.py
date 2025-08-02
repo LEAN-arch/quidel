@@ -73,18 +73,20 @@ with tab1:
             # Fit nested ANOVA model
             model = ols('Q("S/CO Ratio") ~ C(Day) + C(Run):C(Day)', data=filtered_df).fit()
             anova_table = sm.stats.anova_lm(model, typ=2)
+            # CORRECTED: Manually calculate mean_sq as it's not in the default anova_lm output
+            anova_table['mean_sq'] = anova_table['sum_sq'] / anova_table['df']
             
             # Estimate variance components
-            ms_error = model.scale
+            ms_error = model.scale # This is the Mean Squared Error, i.e., variance for residuals
             ms_run = anova_table.loc['C(Run):C(Day)', 'mean_sq']
             ms_day = anova_table.loc['C(Day)', 'mean_sq']
-            
-            reps = filtered_df.groupby(['Day', 'Run']).size().mean()
-            runs = filtered_df['Run'].nunique()
-            
+
+            reps_per_run = filtered_df.groupby(['Day', 'Run']).size().mean()
+            runs_per_day = filtered_df.groupby('Day')['Run'].nunique().mean()
+
             var_within = ms_error
-            var_run = (ms_run - ms_error) / reps
-            var_day = (ms_day - ms_run) / (reps * runs)
+            var_run = (ms_run - ms_error) / reps_per_run
+            var_day = (ms_day - ms_run) / (reps_per_run * runs_per_day)
             
             vc = {
                 'Repeatability (Within-Run)': max(0, var_within),
