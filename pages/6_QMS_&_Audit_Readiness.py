@@ -1,6 +1,7 @@
 # pages/6_QMS_&_Audit_Readiness.py
 import streamlit as st
 import pandas as pd
+import numpy as np  # CORRECTED: Added this import
 from datetime import date, timedelta
 import plotly.express as px
 from utils import generate_capa_data
