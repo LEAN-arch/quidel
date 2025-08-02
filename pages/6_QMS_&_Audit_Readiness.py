@@ -74,7 +74,8 @@ with col1:
             color_discrete_map={
                 'Root Cause Investigation': '#FFC107',
                 'Implementation': '#007BFF',
-                'Effectiveness Check': '#28A745'
+                'Effectiveness Check': '#28A745',
+                'Impact Assessment': '#17A2B8'
             }
         )
         # Add "Today" line
