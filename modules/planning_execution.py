@@ -1,4 +1,4 @@
-# modules/planning_execution.py (CORRECTED & DEBUG VERSION)
+# modules/planning_execution.py (Final Version)
 import streamlit as st
 import pandas as pd
 from utils import helpers
@@ -10,22 +10,16 @@ def render_page():
     projects_list = ["<Select a Project>"] + st.session_state.projects_df['Project'].tolist()
     selected_project = st.selectbox("Select a Project to Manage", projects_list)
 
-    if selected_project == "<Select a Project>":
-        st.info("Please select a project from the dropdown above to begin."); st.stop()
+    if selected_project == "<Select a Project>": st.info("Please select a project from the dropdown above to begin."); st.stop()
     
     project_reqs_df = st.session_state.requirements_df[st.session_state.requirements_df['Project'] == selected_project]
     project_protocols_df = st.session_state.protocols_df[st.session_state.protocols_df['Project'] == selected_project]
     tab1, tab2, tab3, tab4 = st.tabs(["📊 Requirements & Traceability", "📝 V&V Planning & Protocols", "📈 Data Execution & Analysis", "📄 Reporting & e-Signature"])
 
     with tab1:
-        st.subheader(f"Traceability Matrix for {selected_project}")
-        st.info("Link requirements to specific test protocols. Gaps indicate untested requirements.")
+        st.subheader(f"Traceability Matrix for {selected_project}"); st.info("Link requirements to specific test protocols. Gaps indicate untested requirements.")
         edited_reqs_df = st.data_editor(project_reqs_df, column_config={"Req_ID": st.column_config.TextColumn("Req ID", disabled=True),"Requirement_Text": st.column_config.TextColumn("Requirement", width="large"),"Linked_Protocol_ID": st.column_config.TextColumn("Linked Protocol(s)"),"Status": st.column_config.SelectboxColumn("Status", options=['Covered', 'Gap', 'In Progress'])}, hide_index=True, use_container_width=True, num_rows="dynamic")
-        if st.button("Save Traceability Changes"):
-            st.session_state.requirements_df.update(edited_reqs_df)
-            helpers.log_action("director", "Updated traceability matrix", f"Project: {selected_project}")
-            st.success("Traceability matrix updated successfully!")
-            st.rerun()  # <-- CORRECTED FUNCTION CALL
+        if st.button("Save Traceability Changes"): st.session_state.requirements_df.update(edited_reqs_df); helpers.log_action("director", "Updated traceability matrix", f"Project: {selected_project}"); st.success("Traceability matrix updated successfully!"); st.rerun()
 
     with tab2:
         st.subheader(f"Protocols for {selected_project}"); st.dataframe(project_protocols_df, use_container_width=True, hide_index=True)
@@ -34,11 +28,9 @@ def render_page():
                 st.write("Define a new test protocol."); new_protocol_id = st.text_input("Protocol ID (e.g., IP-NEW-01)"); new_protocol_title = st.text_input("Protocol Title"); new_protocol_type = st.selectbox("Protocol Type", ['Precision', 'Linearity', 'Sensitivity', 'Specificity', 'Performance', 'Other']); new_acceptance_criteria = st.text_area("Acceptance Criteria")
                 if st.form_submit_button("Create Protocol Draft"):
                     if new_protocol_id and new_protocol_title and new_acceptance_criteria:
-                        new_row = pd.DataFrame([{'Protocol_ID': new_protocol_id,'Project': selected_project,'Title': new_protocol_title,'Type': new_protocol_type,'Status': 'Draft','Creation_Date': datetime.now(),'Approval_Date': pd.NaT,'Failure_Reason': None,'Acceptance_Criteria': new_acceptance_criteria}]); st.session_state.protocols_df = pd.concat([st.session_state.protocols_df, new_row], ignore_index=True); helpers.log_action("director", "Created new protocol draft", f"ID: {new_protocol_id}"); st.success(f"Protocol '{new_protocol_id}' created as a draft."); 
-                        st.rerun() # <-- CORRECTED FUNCTION CALL
+                        new_row = pd.DataFrame([{'Protocol_ID': new_protocol_id,'Project': selected_project,'Title': new_protocol_title,'Type': new_protocol_type,'Status': 'Draft','Creation_Date': datetime.now(),'Approval_Date': pd.NaT,'Failure_Reason': None,'Acceptance_Criteria': new_acceptance_criteria}]); st.session_state.protocols_df = pd.concat([st.session_state.protocols_df, new_row], ignore_index=True); helpers.log_action("director", "Created new protocol draft", f"ID: {new_protocol_id}"); st.success(f"Protocol '{new_protocol_id}' created as a draft."); st.rerun()
                     else: st.error("Please fill in all fields.")
 
-    # ... (rest of the file is unchanged and correct) ...
     with tab3:
         st.subheader("Execute Protocol & Analyze Data")
         protocol_list = project_protocols_df['Protocol_ID'].tolist(); selected_protocol_id = st.selectbox("Select Protocol to Execute", protocol_list)
@@ -60,8 +52,15 @@ def render_page():
 
     with tab4:
         st.subheader("Generate Report & Finalize")
-        st.warning("⚠️ **Report Generation Disabled:** This feature is temporarily turned off to debug a persistent environment issue with the `python-pptx` library.")
         if 'last_analysis' not in st.session_state or st.session_state.last_analysis['protocol_data']['Project'] != selected_project:
-            st.info("Please run an analysis in the 'Data Execution & Analysis' tab first to see session data.")
+            st.warning("Please run an analysis in the 'Data Execution & Analysis' tab first.")
         else:
-            st.info("Analysis data is ready in session, but report generation is offline.")
+            last_analysis = st.session_state.last_analysis; protocol_id = last_analysis['protocol_data']['Protocol_ID']; st.info(f"Ready to generate a report for **{protocol_id}**.")
+            col1, col2 = st.columns(2);
+            with col1: final_status = st.radio("Set Final Protocol Status", ('Executed - Passed', 'Executed - Failed', 'Deviation'), horizontal=True)
+            with col2: sign_off_name = st.text_input("Enter Full Name to Sign Off", value="Assay Director")
+            if st.button("Generate & Sign Report", type="primary"):
+                with st.spinner("Generating report..."):
+                    ppt_buffer = helpers.generate_ppt_report(last_analysis['protocol_data'],last_analysis['analysis_results'],last_analysis['analysis_fig']); helpers.log_action("director", f"Generated & Signed Report: {protocol_id}", f"Status: {final_status}")
+                    idx = st.session_state.protocols_df.index[st.session_state.protocols_df['Protocol_ID'] == protocol_id].tolist()[0]; st.session_state.protocols_df.at[idx, 'Status'] = final_status; st.session_state.protocols_df.at[idx, 'Signed_Off_By'] = sign_off_name; st.session_state.protocols_df.at[idx, 'Approval_Date'] = datetime.now(); st.success(f"Report for {protocol_id} has been generated and signed!")
+                    st.download_button(label="Download PowerPoint Report",data=ppt_buffer,file_name=f"{protocol_id}_Summary_Report.pptx",mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"); del st.session_state.last_analysis
