@@ -195,27 +195,24 @@ def calculate_instrument_utilization(schedule_df):
     util_df = schedule_df.groupby(['Platform', 'Instrument', 'Status'])['Duration'].sum().reset_index()
     return util_df
 
-# (Other existing functions like generate_submission_package_data, generate_capa_data, etc. remain unchanged from the previous corrected version)
-
 def generate_submission_package_data(project_name="Savanna® RVP12 Assay", pathway="510(k)"):
     """Generates a detailed checklist of V&V deliverables for a regulatory submission package."""
     docs = {
         "510(k)": [
-            ("V&V Master Plan", "DHF-001", "Approved"), ("Product Risk Management File (ISO 14971)", "DHF-002", "Approved"),
-            ("Requirements Traceability Matrix (RTM)", "DHF-003", "Approved"), ("Software V&V Summary Report", "DHF-005", "Approved"),
-            ("Analytical Sensitivity (LoD) Study Report", "V&V-RPT-010", "Approved"), ("Analytical Specificity (Cross-reactivity) Report", "V&V-RPT-011", "In Review"),
-            ("Precision/Reproducibility Study Report (CLSI EP05)", "V&V-RPT-012", "In Review"), ("Interference Study Report (CLSI EP07)", "V&V-RPT-013", "Data Analysis"),
-            ("Reagent & Consumable Stability Report", "V&V-RPT-014", "Execution"), ("V&V Master Summary Report", "DHF-020", "Drafting")
-        ],
-        "PMA Supplement": [
-            ("V&V Master Plan", "DHF-001", "Approved"), ("Product Risk Management File (ISO 14971)", "DHF-002", "Approved"),
-            ("Clinical Study Protocol", "CLIN-001", "Approved"), ("Analytical Performance Studies Package", "V&V-PKG-01", "Approved"),
-            ("Clinical Study Final Report", "CLIN-005", "Data Analysis"), ("Labeling & IFU V&V Report", "V&V-RPT-015", "Approved"),
-            ("V&V Master Summary Report for Submission", "DHF-020", "Drafting")
+            ("V&V Master Plan", "DHF-001", "Approved", "High", 10),
+            ("Product Risk Management File (ISO 14971)", "DHF-002", "Approved", "High", 10),
+            ("Requirements Traceability Matrix (RTM)", "DHF-003", "Approved", "High", 9),
+            ("Software V&V Summary Report", "DHF-005", "Approved", "Medium", 8),
+            ("Analytical Sensitivity (LoD) Study Report", "V&V-RPT-010", "Approved", "Medium", 7),
+            ("Analytical Specificity (Cross-reactivity) Report", "V&V-RPT-011", "In Review", "High", 9),
+            ("Precision/Reproducibility Study Report (CLSI EP05)", "V&V-RPT-012", "In Review", "Low", 5),
+            ("Interference Study Report (CLSI EP07)", "V&V-RPT-013", "Data Analysis", "Medium", 6),
+            ("Reagent & Consumable Stability Report", "V&V-RPT-014", "Execution", "High", 8),
+            ("V&V Master Summary Report", "DHF-020", "Drafting", "High", 9)
         ]
     }
     data = docs.get(pathway, docs["510(k)"])
-    df = pd.DataFrame(data, columns=['Deliverable', 'Document ID', 'Status'])
+    df = pd.DataFrame(data, columns=['Deliverable', 'Document ID', 'Status', 'Regulatory_Impact', 'Statistical_Robustness'])
     status_progress_map = {'Drafting': 15, 'Execution': 40, 'Data Analysis': 65, 'In Review': 85, 'Approved': 100}
     df['Progress'] = df['Status'].map(status_progress_map)
     return df
@@ -307,3 +304,39 @@ def generate_change_control_data():
         'Status': ['V&V Complete', 'V&V in Progress', 'Awaiting V&V Plan']
     }
     return pd.DataFrame(data)
+
+def generate_process_excellence_data():
+    """Generates time-series data for monitoring V&V process performance."""
+    months = pd.to_datetime(pd.date_range(start="2023-01-01", periods=18, freq='M'))
+    cycle_time = 45 - np.arange(18) * 0.5 + np.random.normal(0, 2, 18)
+    rework_rate = 8 + np.sin(np.linspace(0, 2 * np.pi, 18)) * 2 + np.random.normal(0, 0.5, 18)
+    rework_rate = np.clip(rework_rate, 3, 12)
+    deviation_rate = 3 - np.arange(18) * 0.05 + np.random.normal(0, 0.3, 18)
+    deviation_rate = np.clip(deviation_rate, 1, 5)
+    return pd.DataFrame({
+        'Month': months,
+        'Protocol_Approval_Cycle_Time_Days': cycle_time,
+        'Report_Rework_Rate_Percent': rework_rate,
+        'Deviations_per_100_Test_Hours': deviation_rate
+    })
+
+def generate_idp_data():
+    """Generates data for tracking Individual Development Plans."""
+    data = {
+        'Team Member': ['J. Chen', 'S. Patel', 'K. Lee', 'K. Lee'],
+        'Development Goal': [
+            'Achieve "Expert" rating in Statistical Analysis (JMP/R)',
+            'Achieve "Practitioner" rating on Vitros Platform',
+            'Achieve "Practitioner" rating on Sofia Platform',
+            'Complete V&V Protocol & Report Authoring Training'
+        ],
+        'Mentor': ['M. Rodriguez', 'A. Director', 'J. Chen', 'M. Rodriguez'],
+        'Start Date': [date.today() - timedelta(days=30), date.today(), date.today() - timedelta(days=15), date.today()],
+        'Target Date': [date.today() + timedelta(days=150), date.today() + timedelta(days=90), date.today() + timedelta(days=45), date.today() + timedelta(days=75)],
+        'Status': ['In Progress', 'Not Started', 'In Progress', 'Not Started'],
+        'Linked Project': ['Savanna RVP12', 'Vitros HIV Combo 5', 'Sofia SARS v2', 'N/A - Formal Training']
+    }
+    df = pd.DataFrame(data)
+    df['Start Date'] = pd.to_datetime(df['Start Date'])
+    df['Target Date'] = pd.to_datetime(df['Target Date'])
+    return df
