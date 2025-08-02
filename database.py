@@ -1,5 +1,4 @@
-# database.py
-# database.py
+# database.py (Corrected for IndentationError)
 
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, ForeignKey, Text, Boolean
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
@@ -9,6 +8,8 @@ DATABASE_URL = "sqlite:///./assay_vantage.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+# --- ORM Models ---
 
 class User(Base):
     __tablename__ = "users"
@@ -55,21 +56,44 @@ class AuditLog(Base):
     record_type = Column(String, nullable=True)
     record_id = Column(Integer, nullable=True)
 
+# --- Database Initialization Function ---
+
 def init_db():
+    """Creates database tables and seeds them with initial data if they don't exist."""
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
-    if db.query(User).count() == 0:
-        director = User(username="director", full_name="Assay Director", role="director")
-        engineer = User(username="alice", full_name="Alice", role="engineer")
-        viewer = User(username="charlie", full_name="Charlie", role="viewer")
-        db.add_all([director, engineer, viewer]); db.commit()
-        proj1 = Project(name="ImmunoPro-A", status="On Track", start_date=datetime.now()-timedelta(days=60), finish_date=datetime.now()+timedelta(days=30), owner_id=engineer.id)
-        db.add(proj1); db.commit()
-        proto1 = Protocol(protocol_id_str="IP-PREC-01", title="Precision Study", project_id=proj1.id, author_id=engineer.id, status="Executed - Passed", acceptance_criteria="CV <= 5%")
-        db.add(proto1); db.commit()
-    db.close()
-        
-        proto1 = Protocol(protocol_id_str="IP-PREC-01", title="Precision Study", project_id=proj1.id, author_id=engineer.id, status="Executed - Passed", acceptance_criteria="CV <= 5%")
-        db.add(proto1)
-        db.commit()
-    db.close()
+    try:
+        # Check if users already exist to prevent re-seeding
+        if db.query(User).count() == 0:
+            # Create Users
+            director = User(username="director", full_name="Assay Director", role="director")
+            engineer = User(username="alice", full_name="Alice", role="engineer")
+            viewer = User(username="charlie", full_name="Charlie", role="viewer")
+            db.add_all([director, engineer, viewer])
+            db.commit() # Commit users to get their IDs
+
+            # Create Projects
+            proj1 = Project(
+                name="ImmunoPro-A",
+                status="On Track",
+                start_date=datetime.now() - timedelta(days=60),
+                finish_date=datetime.now() + timedelta(days=30),
+                owner_id=engineer.id
+            )
+            db.add(proj1)
+            db.commit() # Commit project to get its ID
+
+            # Create a Protocol associated with the project
+            # ** THE FIX IS HERE: The line was previously incorrectly indented **
+            proto1 = Protocol(
+                protocol_id_str="IP-PREC-01",
+                title="Precision Study",
+                project_id=proj1.id,
+                author_id=engineer.id,
+                status="Executed - Passed",
+                acceptance_criteria="CV <= 5%"
+            )
+            db.add(proto1)
+            db.commit()
+    finally:
+        db.close()
