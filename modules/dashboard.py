@@ -1,9 +1,10 @@
-# modules/dashboard.py (UPDATED with Prophet Forecasting Tab)
+# modules/dashboard.py (CORRECTED with import fix)
 
 import streamlit as st
 from utils import helpers
 import pandas as pd
 from datetime import datetime
+from prophet.plot import plot_plotly  # <-- THE FIX: Add the missing import
 
 def render_page():
     """Renders the enhanced dashboard with a new forecasting tab."""
@@ -74,42 +75,41 @@ def render_page():
             with st.spinner(f"Generating forecast for {project_to_forecast}..."):
                 project_data = projects_df[projects_df['Project'] == project_to_forecast].iloc[0]
                 
-                # Generate synthetic progress data
                 history_df = helpers.generate_prophet_history(project_data)
 
                 if history_df.empty:
                     st.warning("Cannot forecast a project that has not started yet.")
                 else:
-                    # Run the forecast
                     model, forecast = helpers.run_prophet_forecast(history_df)
                     
-                    # Find the forecasted completion date (where yhat crosses 100)
-                    completion_forecast = forecast[forecast['yhat'] >= 100]
-                    forecasted_date = completion_forecast['ds'].iloc[0] if not completion_forecast.empty else None
-                    
-                    # Display results
-                    planned_date = pd.to_datetime(project_data['Finish'])
-                    
-                    st.markdown("---")
-                    f_col1, f_col2 = st.columns(2)
-                    with f_col1:
-                        st.metric(label="Planned Completion Date", value=planned_date.strftime('%Y-%m-%d'))
-                    with f_col2:
-                        if forecasted_date:
-                            delta_days = (forecasted_date - planned_date).days
-                            st.metric(
-                                label="Forecasted Completion Date", 
-                                value=forecasted_date.strftime('%Y-%m-%d'),
-                                delta=f"{delta_days} days from plan",
-                                delta_color="inverse" if delta_days <= 0 else "normal"
-                            )
-                        else:
-                            st.metric(label="Forecasted Completion Date", value="> 90 days")
+                    if model and forecast is not None:
+                        completion_forecast = forecast[forecast['yhat'] >= 100]
+                        forecasted_date = completion_forecast['ds'].iloc[0] if not completion_forecast.empty else None
+                        
+                        planned_date = pd.to_datetime(project_data['Finish'])
+                        
+                        st.markdown("---")
+                        f_col1, f_col2 = st.columns(2)
+                        with f_col1:
+                            st.metric(label="Planned Completion Date", value=planned_date.strftime('%Y-%m-%d'))
+                        with f_col2:
+                            if forecasted_date:
+                                delta_days = (forecasted_date - planned_date).days
+                                st.metric(
+                                    label="Forecasted Completion Date", 
+                                    value=forecasted_date.strftime('%Y-%m-%d'),
+                                    delta=f"{delta_days} days from plan",
+                                    delta_color="inverse" if delta_days <= 0 else "normal"
+                                )
+                            else:
+                                st.metric(label="Forecasted Completion Date", value="> 90 days")
 
-                    # Plot the forecast
-                    fig = plot_plotly(model, forecast)
-                    fig.update_layout(title=f"Forecast for '{project_to_forecast}' Progress",
-                                      xaxis_title="Date", yaxis_title="Completion (%)")
-                    fig.add_hline(y=100, line_dash="dot", line_color="green", annotation_text="100% Complete")
-                    st.plotly_chart(fig, use_container_width=True)
-                    st.caption("The black dots represent simulated historical progress. The dark blue line is the forecast, and the light blue area is the uncertainty interval.")
+                        # Plot the forecast
+                        fig = plot_plotly(model, forecast) # This line will now work correctly
+                        fig.update_layout(title=f"Forecast for '{project_to_forecast}' Progress",
+                                          xaxis_title="Date", yaxis_title="Completion (%)")
+                        fig.add_hline(y=100, line_dash="dot", line_color="green", annotation_text="100% Complete")
+                        st.plotly_chart(fig, use_container_width=True)
+                        st.caption("The black dots represent simulated historical progress. The dark blue line is the forecast, and the light blue area is the uncertainty interval.")
+                    else:
+                        st.error("Could not generate a forecast for this project.")
