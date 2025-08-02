@@ -1,4 +1,4 @@
-# modules/compliance_risk.py
+# modules/compliance_risk.py (CORRECTED)
 import streamlit as st
 import pandas as pd
 from utils import helpers
@@ -16,11 +16,15 @@ def render_page():
         if risk_project_filter != "All Projects": risk_df = risk_df[risk_df['Project'] == risk_project_filter]
         edited_risk_df = st.data_editor(risk_df, column_config={"Risk_ID": st.column_config.TextColumn("Risk ID", disabled=True),"Failure_Mode": st.column_config.TextColumn("Failure Mode", width="large"),"Severity": st.column_config.NumberColumn("S", min_value=1, max_value=10),"Occurrence": st.column_config.NumberColumn("O", min_value=1, max_value=10),"Detection": st.column_config.NumberColumn("D", min_value=1, max_value=10),"RPN": st.column_config.ProgressColumn("RPN", help="Risk Priority Number (S x O x D)",format="%f",min_value=0,max_value=1000,disabled=True),"Mitigation_Action": st.column_config.TextColumn("Mitigation / V&V Link", width="medium"),"Linked_Protocol_ID": st.column_config.TextColumn("Protocol ID")}, hide_index=True, use_container_width=True, num_rows="dynamic")
         if st.button("Save Risk Assessment Changes"):
-            edited_risk_df['RPN'] = edited_risk_df['Severity'] * edited_risk_df['Occurrence'] * edited_risk_df['Detection']; st.session_state.risk_df.update(edited_risk_df); helpers.log_action("director", "Updated FMEA Risk Assessment", f"Project Filter: {risk_project_filter}"); st.success("Risk assessment updated successfully!"); st.experimental_rerun()
+            edited_risk_df['RPN'] = edited_risk_df['Severity'] * edited_risk_df['Occurrence'] * edited_risk_df['Detection']
+            st.session_state.risk_df.update(edited_risk_df)
+            helpers.log_action("director", "Updated FMEA Risk Assessment", f"Project Filter: {risk_project_filter}")
+            st.success("Risk assessment updated successfully!")
+            st.rerun() # <-- CORRECTED FUNCTION CALL
 
+    # ... (rest of the file is unchanged and correct) ...
     with tab2:
-        st.subheader("System Audit Trail (21 CFR Part 11)")
-        st.markdown("A secure, timestamped log of all critical actions performed within the system.")
+        st.subheader("System Audit Trail (21 CFR Part 11)"); st.markdown("A secure, timestamped log of all critical actions performed within the system.")
         audit_log_df = pd.DataFrame(st.session_state.audit_log); col1, col2 = st.columns(2)
         with col1: user_filter = st.multiselect("Filter by User", options=audit_log_df['User'].unique(), default=audit_log_df['User'].unique())
         with col2: action_filter = st.text_input("Filter by Action contains...")
