@@ -2,8 +2,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import numpy as np  # CORRECTED: Added this import
-from utils import generate_vv_project_data, generate_submission_package_data
+import numpy as np
+from utils import generate_vv_project_data, generate_submission_package_data, generate_traceability_matrix_data
 
 st.set_page_config(
     page_title="Submission Readiness | QuidelOrtho",
@@ -39,96 +39,101 @@ selected_project = st.selectbox(
 
 pathway = project_info.loc[selected_project, 'Regulatory Pathway']
 st.info(f"**Project:** {selected_project} | **Target Submission:** {pathway}")
-
-# --- Submission Package Data ---
-submission_df = generate_submission_package_data(selected_project, pathway)
-
 st.divider()
 
-# --- Submission Readiness KPIs & Checklist (ENHANCED) ---
-col1, col2 = st.columns([1, 1.8])
+# --- Submission Readiness Section ---
+tab1, tab2 = st.tabs(["**Deliverables Checklist & Readiness Score**", "**Traceability Flow Analysis**"])
 
-with col1:
-    st.header("V&V Package Readiness")
-    # Calculate Readiness Score
-    progress_values = submission_df['Progress']
-    weights = [1.5 if "Master" in x or "Summary" in x else 1 for x in submission_df['Deliverable']] # Weight summary docs higher
-    readiness_score = np.average(progress_values, weights=weights)
+with tab1:
+    st.header("V&V Deliverables Checklist & Readiness Score")
+    submission_df = generate_submission_package_data(selected_project, pathway)
+    
+    col1, col2 = st.columns([1, 1.8])
+    with col1:
+        st.subheader("V&V Package Readiness")
+        progress_values = submission_df['Progress']
+        weights = [1.5 if "Master" in x or "Summary" in x else 1 for x in submission_df['Deliverable']]
+        readiness_score = np.average(progress_values, weights=weights)
 
-    # Determine Gauge Color and Text
-    if readiness_score == 100:
-        gauge_color = "#28A745"
-        status_text = "Ready for Submission"
-    elif readiness_score >= 80:
-        gauge_color = "#007BFF"
-        status_text = "Final Review Stage"
-    elif readiness_score >= 50:
-        gauge_color = "#FFC107"
-        status_text = "In Progress"
-    else:
-        gauge_color = "#DC3545"
-        status_text = "Early Stage"
+        if readiness_score == 100: gauge_color, status_text = "#28A745", "Ready for Submission"
+        elif readiness_score >= 80: gauge_color, status_text = "#007BFF", "Final Review Stage"
+        elif readiness_score >= 50: gauge_color, status_text = "#FFC107", "In Progress"
+        else: gauge_color, status_text = "#DC3545", "Early Stage"
 
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=readiness_score,
-        number={'suffix': '%', 'font': {'size': 40}},
-        title={'text': f"Submission Readiness<br><span style='font-size:0.9em;color:{gauge_color}'>{status_text}</span>"},
-        gauge={
-            'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
-            'bar': {'color': gauge_color},
-            'bgcolor': "white",
-            'borderwidth': 2,
-            'bordercolor': "#E9ECEF",
-        }
-    ))
-    fig.update_layout(height=300, margin=dict(l=20, r=20, t=50, b=20))
-    st.plotly_chart(fig, use_container_width=True)
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number", value=readiness_score,
+            number={'suffix': '%', 'font': {'size': 40}},
+            title={'text': f"Submission Readiness<br><span style='font-size:0.9em;color:{gauge_color}'>{status_text}</span>"},
+            gauge={'axis': {'range': [None, 100]}, 'bar': {'color': gauge_color}}
+        ))
+        fig.update_layout(height=300, margin=dict(l=20, r=20, t=50, b=20))
+        st.plotly_chart(fig, use_container_width=True)
 
-    # Summary of remaining items
-    st.subheader("Critical Path Blockers")
-    remaining_items_df = submission_df[submission_df['Status'] != 'Approved'].sort_values('Progress')
-    if not remaining_items_df.empty:
-        st.warning("The following deliverables must be 'Approved' before submission can proceed.")
-        st.dataframe(
-            remaining_items_df[['Deliverable', 'Status']],
-            hide_index=True,
-            use_container_width=True
-        )
-    else:
-        st.success("All V&V deliverables are approved! Package is ready for submission.")
+        remaining_items_df = submission_df[submission_df['Status'] != 'Approved'].sort_values('Progress')
+        if not remaining_items_df.empty:
+            st.warning("Critical Path Blockers:")
+            st.dataframe(remaining_items_df[['Deliverable', 'Status']], hide_index=True, use_container_width=True)
+        else:
+            st.success("All V&V deliverables are approved!")
 
-
-with col2:
-    st.header(f"V&V Deliverables Checklist for {pathway} Submission")
-    st.caption("Status of key V&V documents from the DHF required for the submission.")
-
-    def get_status_icon(status):
-        if status == "Approved": return "✅"
-        if status == "In Review": return "🔄"
-        if status == "Data Analysis": return "📊"
-        if status == "Execution": return "🔬"
-        return "📝" # Drafting
-
-    # Custom styled checklist
-    st.write('<div style="height: 450px; overflow-y: auto; padding-right: 10px;">', unsafe_allow_html=True)
-    for index, row in submission_df.iterrows():
-        icon = get_status_icon(row['Status'])
-        st.markdown(f"""
-        <div style="margin-bottom: 10px; border: 1px solid #DEE2E6; border-radius: 5px; padding: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <strong style="font-size: 1.1em;">{row['Deliverable']}</strong><br>
-                    <span style="font-size: 0.9em; color: #6C757D;">Doc ID: {row['Document ID']}</span>
+    with col2:
+        st.subheader(f"V&V Deliverables Checklist for {pathway}")
+        def get_status_icon(status):
+            if status == "Approved": return "✅"
+            if status == "In Review": return "🔄"
+            if status == "Data Analysis": return "📊"
+            if status == "Execution": return "🔬"
+            return "📝"
+        
+        st.write('<div style="height: 450px; overflow-y: auto; padding-right: 10px;">', unsafe_allow_html=True)
+        for index, row in submission_df.iterrows():
+            icon = get_status_icon(row['Status'])
+            st.markdown(f"""
+            <div style="margin-bottom: 10px; border: 1px solid #DEE2E6; border-radius: 5px; padding: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="font-size: 1.1em;">{row['Deliverable']}</strong><br>
+                        <span style="font-size: 0.9em; color: #6C757D;">Doc ID: {row['Document ID']}</span>
+                    </div>
+                    <div style="text-align: right;"><span style="font-size: 1.1em; font-weight: bold;">{icon} {row['Status']}</span></div>
                 </div>
-                <div style="text-align: right;">
-                    <span style="font-size: 1.1em; font-weight: bold;">{icon} {row['Status']}</span>
+                <div style="background-color: #E9ECEF; border-radius: 10px; margin-top: 10px;">
+                    <div style="background-color: {'#28A745' if row['Progress'] == 100 else '#007BFF'}; width: {row['Progress']}%; height: 10px; border-radius: 10px;"></div>
                 </div>
             </div>
-            <div style="background-color: #E9ECEF; border-radius: 10px; margin-top: 10px;">
-                <div style="background-color: {'#28A745' if row['Progress'] == 100 else '#007BFF'}; width: {row['Progress']}%; height: 10px; border-radius: 10px; text-align: center; color: white; font-size: 0.8em; line-height: 10px;">
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    st.write('</div>', unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+        st.write('</div>', unsafe_allow_html=True)
+
+with tab2:
+    st.header("V&V Traceability Flow Analysis")
+    st.caption("Visualize the end-to-end flow from requirements to final V&V status, highlighting gaps and failures.")
+    rtm_df = generate_traceability_matrix_data()
+
+    # Prepare data for Sankey diagram
+    all_nodes = list(pd.concat([rtm_df['Requirement Type'], rtm_df['Test Result']]).unique())
+    source_indices = [all_nodes.index(req_type) for req_type in rtm_df['Requirement Type']]
+    target_indices = [all_nodes.index(test_result) for test_result in rtm_df['Test Result']]
+    
+    fig_sankey = go.Figure(data=[go.Sankey(
+        node=dict(
+            pad=15,
+            thickness=20,
+            line=dict(color="black", width=0.5),
+            label=all_nodes,
+            color=["#0039A6", "#00AEEF", "#FFC72C", "#F47321", "#28A745", "#DC3545"]
+        ),
+        link=dict(
+            source=source_indices,
+            target=target_indices,
+            value=[1] * len(rtm_df), # Each link has a value of 1
+            color=[ 'rgba(220, 53, 69, 0.5)' if res == 'Fail' else 'rgba(40, 167, 69, 0.5)' for res in rtm_df['Test Result']]
+        ))])
+    fig_sankey.update_layout(title_text="Requirement Traceability to V&V Outcome", font_size=12)
+    st.plotly_chart(fig_sankey, use_container_width=True)
+    with st.expander("**Director's Analysis**"):
+        st.markdown("""
+        The Sankey diagram provides a powerful, intuitive visualization of our V&V coverage and outcomes, perfect for executive summaries and audit presentations.
+        - **Flow Volume:** The width of the bands shows the number of requirements of each type.
+        - **Color Coding:** The green links represent successful verification ('Pass'), while the **red link(s)** immediately draw attention to verification failures.
+        - **Traceability Demonstration:** This single chart elegantly demonstrates that every requirement type has a flow path to a V&V outcome, visually confirming the core principle of traceability. The red flow from 'Software Requirement' to 'Fail' instantly identifies the primary blocker for this submission package.
+        """)
