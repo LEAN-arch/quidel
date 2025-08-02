@@ -1,10 +1,8 @@
-# modules/compliance_risk.py (Final Production Version)
+# modules/compliance_risk.py (Final Working Version)
 
 import streamlit as st
 import pandas as pd
 from utils import helpers
-import io
-import plotly.graph_objects as go
 
 def render_page():
     st.title("Compliance & Risk Hub")
@@ -77,7 +75,7 @@ def render_page():
             st.checkbox(f"Risk Management File (.csv)", value=not project_risks.empty, disabled=True)
             st.checkbox(f"Traceability Matrix (.csv)", value=not project_reqs.empty, disabled=True)
             
-            st.markdown("**V&V Summary Reports (.pptx):**")
+            st.markdown("**V&V Summary Reports (placeholders):**")
             executed_protocols = project_protocols[project_protocols['Status'].str.contains("Executed", na=False)]
             if not executed_protocols.empty:
                 for _, row in executed_protocols.iterrows(): st.checkbox(f"  - {row['Protocol_ID']}", value=True, disabled=True, key=row['Protocol_ID'])
