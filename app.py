@@ -1,4 +1,4 @@
-# app.py (CORRECTED)
+# app.py
 
 import streamlit as st
 from modules import dashboard, planning_execution, compliance_risk
@@ -38,7 +38,7 @@ else:
         if st.button("Logout"):
             st.session_state.logged_in = False
             helpers.log_action("director", "User logged out.")
-            st.rerun()  # <-- CORRECTED FUNCTION CALL
+            st.rerun()
 
     page_module = PAGES[selection]
     page_module.render_page()
