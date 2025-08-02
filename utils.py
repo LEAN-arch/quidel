@@ -210,3 +210,73 @@ def run_monte_carlo():
     fig = px.histogram(total_times, nbins=50, title="Monte Carlo Simulation of V&V Plan Duration (5000 runs)")
     fig.add_vline(x=p90, line_dash="dash", line_color="red", annotation_text=f"P90 = {p90:.1f} days")
     return fig, f"**Conclusion:** While the 'most likely' duration is ~38 days, there is a 10% chance the project will take **{p90:.1f} days or longer**. This P90 value should be used for risk-adjusted planning."
+
+def create_v_model_figure():
+    """Generates a Plotly figure representing the V-model for software development."""
+    fig = go.Figure()
+
+    # Left side of V (Development)
+    fig.add_trace(go.Scatter(
+        x=[1, 2, 3, 4], y=[4, 3, 2, 1],
+        mode='lines+markers+text',
+        text=["User Needs", "System Req.", "Architecture", "Module Design"],
+        textposition="top right",
+        line=dict(color='royalblue', width=2),
+        marker=dict(size=10)
+    ))
+
+    # Right side of V (Testing)
+    fig.add_trace(go.Scatter(
+        x=[5, 6, 7, 8], y=[1, 2, 3, 4],
+        mode='lines+markers+text',
+        text=["Unit Test", "Integration Test", "System V&V", "User Validation (UAT)"],
+        textposition="top left",
+        line=dict(color='green', width=2),
+        marker=dict(size=10)
+    ))
+
+    # Connecting lines
+    fig.add_shape(type="line", x0=4, y0=1, x1=5, y1=1, line=dict(color="grey", width=1, dash="dot"))
+    fig.add_shape(type="line", x0=3, y0=2, x1=6, y1=2, line=dict(color="grey", width=1, dash="dot"))
+    fig.add_shape(type="line", x0=2, y0=3, x1=7, y1=3, line=dict(color="grey", width=1, dash="dot"))
+    fig.add_shape(type="line", x0=1, y0=4, x1=8, y1=4, line=dict(color="grey", width=1, dash="dot"))
+
+    fig.update_layout(
+        title_text="The V-Model for Software Validation (IEC 62304)",
+        showlegend=False,
+        xaxis=dict(showticklabels=False, zeroline=False, showgrid=False),
+        yaxis=dict(showticklabels=False, zeroline=False, showgrid=False)
+    )
+    return fig
+
+def get_software_risk_data():
+    """Generates sample data for the software risk classification table."""
+    return pd.DataFrame([
+        {"Software Item": "Patient Result Algorithm", "Description": "Calculates the final diagnostic result from raw signal.", "Potential Harm": "Misdiagnosis (death or serious injury)", "IEC 62304 Class": "Class C"},
+        {"Software Item": "Database Middleware", "Description": "Transfers data between application and database.", "Potential Harm": "Data loss/corruption (indirect harm)", "IEC 62304 Class": "Class B"},
+        {"Software Item": "UI Color Theme Module", "Description": "Controls the look and feel of the user interface.", "Potential Harm": "No potential for harm", "IEC 62304 Class": "Class A"},
+    ])
+
+def get_part11_checklist_data():
+    """Generates a sample 21 CFR Part 11 compliance checklist."""
+    return {
+        "Controls for closed systems": {
+            "11.10(a) Validation": True,
+            "11.10(b) Accurate Copies": True,
+            "11.10(c) Protection of Records": True,
+            "11.10(d) Limiting System Access": True,
+            "11.10(e) Audit Trails": True,
+            "11.10(f) Operational System Checks": False,
+            "11.10(g) Authority Checks": True,
+            "11.10(h) Device Checks": True
+        },
+        "Controls for open systems": {
+            "11.30 Data Encryption": True,
+            "11.30 Digital Signature Standards": True
+        },
+        "Electronic Signatures": {
+            "11.50 General Requirements": True,
+            "11.70 Signature/Record Linking": True,
+            "11.200(a) Signature Components": False,
+        }
+    }
