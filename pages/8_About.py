@@ -8,7 +8,8 @@ st.set_page_config(
     page_icon="⚕️"
 )
 
-st.image("https://images.wsj.net/im-509536/social", use_column_width=True) # Placeholder for a QuidelOrtho corporate banner
+# CORRECTED: Replaced deprecated use_column_width with use_container_width
+st.image("https://images.wsj.net/im-509536/social", use_container_width=True) # Placeholder for a QuidelOrtho corporate banner
 
 st.title("Assay V&V Command Center: A Strategic Management Tool")
 st.markdown("---")
