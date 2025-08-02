@@ -6,7 +6,7 @@ import pandas as pd
 from datetime import datetime
 from prophet.plot import plot_plotly
 from database import SessionLocal, Project, Protocol, User
-
+import numpy as np
 def render_page():
     st.title("V&V Command Center Dashboard")
     st.markdown("Diagnostic overview of portfolio health, process efficiency, quality, and risk. *Designed for action.*")
