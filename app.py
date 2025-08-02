@@ -36,12 +36,12 @@ col4.metric("Residual Risks in 'Action Required' Zone", f"{high_impact_risks}", 
 
 st.divider()
 
-# --- Main Content Area (ENHANCED for V&V Planning) ---
-col1, col2 = st.columns((2, 1.2))
+# --- Main Content Area (ENHANCED VISUALIZATIONS) ---
+st.header("V&V Portfolio Dashboard: Timelines, Resources, & Risk Posture")
+tab1, tab2, tab3 = st.tabs(["**Portfolio Timeline by Phase**", "**Resource Allocation by V&V Lead**", "**Integrated Risk Posture (ISO 14971)**"])
 
-with col1:
-    st.header("V&V Portfolio Dashboard: Timelines, Milestones, & Dependencies")
-    st.caption("Visualize project velocity, identify potential resource conflicts, and track progress against key regulatory submission dates.")
+with tab1:
+    st.caption("Visualize project velocity, identify potential phase-gate bottlenecks, and track progress against key regulatory submission dates.")
     fig = px.timeline(
         projects_df,
         x_start="Start Date",
@@ -50,25 +50,8 @@ with col1:
         color="V&V Phase",
         title="V&V Project Timelines by Phase",
         hover_name="Project/Assay",
-        hover_data={
-            "V&V Lead": True,
-            "Overall Status": True,
-            "Platform": True,
-            "Regulatory Pathway": True,
-            "Key Milestone": True,
-            "Upstream Dependency": True
-        },
-        color_discrete_map={
-            'Planning': '#17A2B8',
-            'Protocol Development': '#007BFF',
-            'Execution': '#FFC107',
-            'Data Analysis': '#FD7E14',
-            'Reporting': '#28A745',
-            'On Hold': '#DC3545',
-            'Complete': '#6C757D'
-        }
+        hover_data={"V&V Lead": True, "Overall Status": True, "Platform": True, "Key Milestone": True}
     )
-    # Add milestone markers to the timeline
     for index, row in projects_df.iterrows():
         if pd.notna(row['Milestone Date']):
             fig.add_trace(go.Scatter(
@@ -77,30 +60,50 @@ with col1:
                 name='Key Milestone', hovertemplate=f"Milestone: {row['Key Milestone']}<br>Date: {row['Milestone Date'].strftime('%Y-%m-%d')}<extra></extra>",
                 showlegend=False
             ))
-
     fig.update_yaxes(categoryorder="total ascending", title=None)
-    fig.update_layout(legend_title_text='V&V Phase')
     st.plotly_chart(fig, use_container_width=True)
 
-with col2:
-    st.header("Integrated Risk Management Dashboard (ISO 14971)")
-    st.caption("Prioritize actions by visualizing product and project risks based on severity of harm and probability of occurrence.")
+with tab2:
+    st.caption("Analyze project workload distribution across the V&V team to identify and mitigate resource contention risks proactively.")
+    fig_resource = px.timeline(
+        projects_df,
+        x_start="Start Date",
+        x_end="Due Date",
+        y="V&V Lead",
+        color="Project/Assay",
+        title="Project Allocation by V&V Lead",
+        hover_name="Project/Assay",
+        hover_data={"V&V Phase": True, "Overall Status": True, "Platform": True}
+    )
+    fig_resource.update_yaxes(categoryorder="total ascending", title="V&V Lead")
+    st.plotly_chart(fig_resource, use_container_width=True)
+    with st.expander("**Director's Analysis**"):
+        st.markdown("""
+        This view is critical for my resource management responsibilities. It immediately highlights potential over-allocation. For example, if **M. Rodriguez** has multiple large projects running concurrently, it represents a significant risk to all of those timelines. This visualization provides the data needed to justify re-assigning projects, delaying non-critical start dates, or hiring additional staff.
+        """)
+
+with tab3:
+    st.caption("Prioritize actions by visualizing product and project risks based on severity and probability, including risk distribution analysis.")
     fig_risk = px.scatter(
         risks_df, x="Probability", y="Severity", size="Risk_Score", color="Risk_Score",
         color_continuous_scale=px.colors.sequential.OrRd,
         hover_name="Risk Description",
         hover_data={"Project": True, "Owner": True, "Mitigation": True, "Risk_Score": True},
-        size_max=40, title="Risk Heatmap: Severity vs. Probability"
+        marginal_x="histogram", marginal_y="histogram",
+        title="Risk Heatmap with Distribution Analysis"
     )
     fig_risk.update_layout(
         xaxis=dict(tickvals=[1, 2, 3, 4, 5], ticktext=['Improbable', 'Remote', 'Occasional', 'Probable', 'Frequent'], title='Probability of Occurrence'),
         yaxis=dict(tickvals=[1, 2, 3, 4, 5], ticktext=['Negligible', 'Minor', 'Serious', 'Critical', 'Catastrophic'], title='Severity of Harm'),
         coloraxis_colorbar_title_text='Risk Score'
     )
-    # Highlight the "Unacceptable Risk" region per ISO 14971
     fig_risk.add_shape(type="rect", xref="x", yref="y", x0=3.5, y0=3.5, x1=5.5, y1=5.5, fillcolor="rgba(220, 53, 69, 0.2)", layer="below", line_width=0)
     fig_risk.add_annotation(x=4.5, y=4.5, text="Unacceptable Region", showarrow=False, font=dict(color="#DC3545", size=12, family="Arial, bold"))
     st.plotly_chart(fig_risk, use_container_width=True)
+    with st.expander("**Director's Analysis**"):
+        st.markdown("""
+        This enhanced risk plot provides two layers of insight. The central heatmap identifies the highest-scoring individual risks that require immediate action. The **marginal histograms** on the axes reveal systemic trends. For example, a large peak in the top histogram at 'Probable' (4) indicates a systemic issue with recurring, high-probability risks across the portfolio, even if their severity varies. This might signal a need to improve our upstream R&D processes to design out risk earlier.
+        """)
 
 st.header("V&V Portfolio: Detailed View & Status")
 st.dataframe(projects_df, use_container_width=True, hide_index=True)
