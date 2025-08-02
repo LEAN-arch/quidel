@@ -1,7 +1,7 @@
 # pages/6_QMS_&_Audit_Readiness.py
 import streamlit as st
 import pandas as pd
-import numpy as np  # CORRECTED: Added this import
+import numpy as np
 from datetime import date, timedelta
 import plotly.express as px
 from utils import generate_capa_data
@@ -77,7 +77,7 @@ with tab2:
             title='CAPA Aging vs. Due Date Status'
         )
         fig_aging.add_hline(y=0, line_dash="dash", line_color="red")
-        fig_aging.add_annotation(x=capa_df['Age (Days)'].max(), y=5, text="Overdue", showarrow=False, font_color="red")
+        fig_aging.add_annotation(x=capa_df['Age (Days)'].max() * 0.9 if not capa_df.empty else 0, y=5, text="Overdue", showarrow=False, font_color="red")
         st.plotly_chart(fig_aging, use_container_width=True)
         
     with col2:
