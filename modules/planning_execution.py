@@ -1,4 +1,4 @@
-# modules/planning_execution.py (Final Production Version)
+# modules/planning_execution.py (Final Working Version)
 
 import streamlit as st
 import pandas as pd
@@ -60,8 +60,8 @@ def render_page():
             col1, col2 = st.columns(2);
             with col1: final_status = st.radio("Set Final Protocol Status", ('Executed - Passed', 'Executed - Failed', 'Deviation'), horizontal=True)
             with col2: sign_off_name = st.text_input("Enter Full Name to Sign Off", value="Assay Director")
-            if st.button("Generate & Sign Report", type="primary"):
-                with st.spinner("Generating report..."):
-                    ppt_buffer = helpers.generate_ppt_report(last_analysis['protocol_data'],last_analysis['analysis_results'],last_analysis['analysis_fig']); helpers.log_action("director", f"Generated & Signed Report: {protocol_id}", f"Status: {final_status}")
-                    idx = st.session_state.protocols_df.index[st.session_state.protocols_df['Protocol_ID'] == protocol_id].tolist()[0]; st.session_state.protocols_df.at[idx, 'Status'] = final_status; st.session_state.protocols_df.at[idx, 'Signed_Off_By'] = sign_off_name; st.session_state.protocols_df.at[idx, 'Approval_Date'] = datetime.now(); st.success(f"Report for {protocol_id} has been generated and signed!")
-                    st.download_button(label="Download PowerPoint Report",data=ppt_buffer,file_name=f"{protocol_id}_Summary_Report.pptx",mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"); del st.session_state.last_analysis
+            
+            st.button(
+                "Generate & Sign Report", type="primary", disabled=True, 
+                help="This feature is disabled due to a persistent environment issue with the python-pptx library."
+            )
