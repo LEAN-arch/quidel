@@ -3,6 +3,7 @@
 import streamlit as st
 import pandas as pd
 from utils import helpers
+from datetime import datetime
 
 def render_page():
     """Renders the V&V lifecycle management page."""
@@ -80,9 +81,10 @@ def render_page():
                             'Title': new_protocol_title,
                             'Type': new_protocol_type,
                             'Status': 'Draft',
-                            'Acceptance_Criteria': new_acceptance_criteria,
-                            'Signed_Off_By': None,
-                            'Sign_Off_Date': None
+                            'Creation_Date': datetime.now(),
+                            'Approval_Date': pd.NaT,
+                            'Failure_Reason': None,
+                            'Acceptance_Criteria': new_acceptance_criteria
                         }])
                         st.session_state.protocols_df = pd.concat([st.session_state.protocols_df, new_row], ignore_index=True)
                         helpers.log_action("director", "Created new protocol draft", f"ID: {new_protocol_id}")
@@ -178,7 +180,8 @@ def render_page():
                     idx = st.session_state.protocols_df.index[st.session_state.protocols_df['Protocol_ID'] == protocol_id].tolist()[0]
                     st.session_state.protocols_df.at[idx, 'Status'] = final_status
                     st.session_state.protocols_df.at[idx, 'Signed_Off_By'] = sign_off_name
-                    st.session_state.protocols_df.at[idx, 'Sign_Off_Date'] = datetime.now()
+                    # In a real app, this date would be the execution date. We'll use now().
+                    st.session_state.protocols_df.at[idx, 'Approval_Date'] = datetime.now()
                     
                     st.success(f"Report for {protocol_id} has been generated and signed!")
                     
