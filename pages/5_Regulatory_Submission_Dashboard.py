@@ -42,7 +42,7 @@ st.info(f"**Project:** {selected_project} | **Target Submission:** {pathway}")
 st.divider()
 
 # --- Submission Readiness Section ---
-tab1, tab2 = st.tabs(["**Deliverables Checklist & Readiness Score**", "**Traceability Flow Analysis**"])
+tab1, tab2, tab3 = st.tabs(["**Deliverables Checklist & Readiness Score**", "**Traceability Flow Analysis**", "**Predictive Regulatory Strategy**"])
 
 with tab1:
     st.header("V&V Deliverables Checklist & Readiness Score")
@@ -109,31 +109,43 @@ with tab2:
     st.caption("Visualize the end-to-end flow from requirements to final V&V status, highlighting gaps and failures.")
     rtm_df = generate_traceability_matrix_data()
 
-    # Prepare data for Sankey diagram
     all_nodes = list(pd.concat([rtm_df['Requirement Type'], rtm_df['Test Result']]).unique())
     source_indices = [all_nodes.index(req_type) for req_type in rtm_df['Requirement Type']]
     target_indices = [all_nodes.index(test_result) for test_result in rtm_df['Test Result']]
     
     fig_sankey = go.Figure(data=[go.Sankey(
-        node=dict(
-            pad=15,
-            thickness=20,
-            line=dict(color="black", width=0.5),
-            label=all_nodes,
-            color=["#0039A6", "#00AEEF", "#FFC72C", "#F47321", "#28A745", "#DC3545"]
-        ),
-        link=dict(
-            source=source_indices,
-            target=target_indices,
-            value=[1] * len(rtm_df), # Each link has a value of 1
-            color=[ 'rgba(220, 53, 69, 0.5)' if res == 'Fail' else 'rgba(40, 167, 69, 0.5)' for res in rtm_df['Test Result']]
-        ))])
+        node=dict(pad=15, thickness=20, line=dict(color="black", width=0.5), label=all_nodes,
+                  color=["#0039A6", "#00AEEF", "#FFC72C", "#F47321", "#28A745", "#DC3545"]),
+        link=dict(source=source_indices, target=target_indices, value=[1] * len(rtm_df),
+                  color=[ 'rgba(220, 53, 69, 0.5)' if res == 'Fail' else 'rgba(40, 167, 69, 0.5)' for res in rtm_df['Test Result']])
+    )])
     fig_sankey.update_layout(title_text="Requirement Traceability to V&V Outcome", font_size=12)
     st.plotly_chart(fig_sankey, use_container_width=True)
     with st.expander("**Director's Analysis**"):
         st.markdown("""
-        The Sankey diagram provides a powerful, intuitive visualization of our V&V coverage and outcomes, perfect for executive summaries and audit presentations.
-        - **Flow Volume:** The width of the bands shows the number of requirements of each type.
-        - **Color Coding:** The green links represent successful verification ('Pass'), while the **red link(s)** immediately draw attention to verification failures.
-        - **Traceability Demonstration:** This single chart elegantly demonstrates that every requirement type has a flow path to a V&V outcome, visually confirming the core principle of traceability. The red flow from 'Software Requirement' to 'Fail' instantly identifies the primary blocker for this submission package.
+        The Sankey diagram provides a powerful, intuitive visualization of our V&V coverage and outcomes. The **red link(s)** immediately draw attention to verification failures. This single chart elegantly demonstrates that every requirement type has a flow path to a V&V outcome, visually confirming the core principle of traceability for an audit.
+        """)
+
+with tab3:
+    st.header("Predictive Regulatory Strategy: AI Query Forecaster")
+    st.caption("Proactively identify areas in the V&V package that are most likely to receive questions from regulatory reviewers.")
+    
+    submission_df['Regulatory_Risk'] = submission_df['Regulatory_Impact'].map({'High': 3, 'Medium': 2, 'Low': 1}) * (10 - submission_df['Statistical_Robustness'])
+    
+    fig_heatmap = px.treemap(
+        submission_df,
+        path=[px.Constant("All Deliverables"), 'Regulatory_Impact', 'Deliverable'],
+        values='Regulatory_Risk',
+        color='Statistical_Robustness',
+        color_continuous_scale='RdYlGn',
+        color_continuous_midpoint=np.average(submission_df['Statistical_Robustness'], weights=submission_df['Regulatory_Risk']),
+        title='Regulatory Submission Risk Heatmap'
+    )
+    st.plotly_chart(fig_heatmap, use_container_width=True)
+    with st.expander("**Director's Analysis**"):
+        st.markdown("""
+        This treemap is a proactive tool for audit and submission preparation. It helps me focus my team's attention on areas of potential weakness *before* we submit.
+        - **Size of the Box:** Represents the overall "Regulatory Risk Score" (a combination of the deliverable's importance and the robustness of its data). Larger boxes demand more of my attention.
+        - **Color of the Box:** Represents the "Statistical Robustness" of the underlying data (1-10 scale). Bright green means the data is overwhelmingly conclusive and unlikely to be questioned. **Yellow or red boxes** indicate results that, while passing, may be statistically borderline (e.g., p-value of 0.04, %CV just under the limit).
+        - **Actionable Insight:** The large, yellowish box for the **Specificity Report** indicates it has a high regulatory impact and only moderately robust data. I will direct the V&V lead to prepare a formal memo preemptively addressing any potential reviewer questions about the borderline results in that study, strengthening our submission package.
         """)
