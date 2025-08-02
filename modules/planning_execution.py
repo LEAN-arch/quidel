@@ -1,4 +1,4 @@
-# modules/planning_execution.py
+# modules/planning_execution.py (DEBUG VERSION)
 import streamlit as st
 import pandas as pd
 from utils import helpers
@@ -11,8 +11,7 @@ def render_page():
     selected_project = st.selectbox("Select a Project to Manage", projects_list)
 
     if selected_project == "<Select a Project>":
-        st.info("Please select a project from the dropdown above to begin.")
-        st.stop()
+        st.info("Please select a project from the dropdown above to begin."); st.stop()
     
     project_reqs_df = st.session_state.requirements_df[st.session_state.requirements_df['Project'] == selected_project]
     project_protocols_df = st.session_state.protocols_df[st.session_state.protocols_df['Project'] == selected_project]
@@ -56,14 +55,12 @@ def render_page():
 
     with tab4:
         st.subheader("Generate Report & Finalize")
-        if 'last_analysis' not in st.session_state or st.session_state.last_analysis['protocol_data']['Project'] != selected_project: st.warning("Please run an analysis in the 'Data Execution & Analysis' tab first.")
+        
+        # --- DEBUGGING CHANGE ---
+        # The report generation feature is disabled.
+        st.warning("⚠️ **Report Generation Disabled:** This feature is temporarily turned off to debug a persistent environment issue with the `python-pptx` library.")
+        
+        if 'last_analysis' not in st.session_state or st.session_state.last_analysis['protocol_data']['Project'] != selected_project:
+            st.info("Please run an analysis in the 'Data Execution & Analysis' tab first to see session data.")
         else:
-            last_analysis = st.session_state.last_analysis; protocol_id = last_analysis['protocol_data']['Protocol_ID']; st.info(f"Ready to generate a report for **{protocol_id}**.")
-            col1, col2 = st.columns(2)
-            with col1: final_status = st.radio("Set Final Protocol Status", ('Executed - Passed', 'Executed - Failed', 'Deviation'), horizontal=True)
-            with col2: sign_off_name = st.text_input("Enter Full Name to Sign Off", value="Assay Director")
-            if st.button("Generate & Sign Report", type="primary"):
-                with st.spinner("Generating report..."):
-                    ppt_buffer = helpers.generate_ppt_report(last_analysis['protocol_data'],last_analysis['analysis_results'],last_analysis['analysis_fig']); helpers.log_action("director", f"Generated & Signed Report: {protocol_id}", f"Status: {final_status}")
-                    idx = st.session_state.protocols_df.index[st.session_state.protocols_df['Protocol_ID'] == protocol_id].tolist()[0]; st.session_state.protocols_df.at[idx, 'Status'] = final_status; st.session_state.protocols_df.at[idx, 'Signed_Off_By'] = sign_off_name; st.session_state.protocols_df.at[idx, 'Approval_Date'] = datetime.now(); st.success(f"Report for {protocol_id} has been generated and signed!")
-                    st.download_button(label="Download PowerPoint Report",data=ppt_buffer,file_name=f"{protocol_id}_Summary_Report.pptx",mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"); del st.session_state.last_analysis
+            st.info("Analysis data is ready in session, but report generation is offline.")
