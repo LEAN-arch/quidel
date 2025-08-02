@@ -1,7 +1,8 @@
 # pages/2_V&V_Execution_&_Leadership.py
 import streamlit as st
 import pandas as pd
-from datetime import date, timedelta  # CORRECTED: Added this import
+from datetime import date, timedelta
+import plotly.express as px
 from utils import generate_vv_project_data, generate_capa_data, generate_change_control_data
 
 st.set_page_config(
@@ -41,8 +42,6 @@ tab1, tab2, tab3 = st.tabs(["**Protocol & Execution Status**", "**Deviation & An
 with tab1:
     st.header("V&V Protocol & Execution Status")
     st.caption("Tracking the lifecycle of key V&V protocols from authoring to final report.")
-
-    # Mock data for protocol status
     protocol_data = {
         'Protocol ID': ['V&V-PRO-010', 'V&V-PRO-011', 'V&V-PRO-012', 'V&V-PRO-SFT-001'],
         'Protocol Name': ['Analytical Sensitivity (LoD)', 'Analytical Specificity', 'Precision (Reproducibility)', 'Software Black-Box Testing'],
@@ -52,72 +51,53 @@ with tab1:
         'Linked Report': ['V&V-RPT-010 (Draft)', 'N/A', 'N/A', 'N/A']
     }
     protocol_df = pd.DataFrame(protocol_data)
-
     st.data_editor(
         protocol_df,
-        column_config={
-            "Percent Complete": st.column_config.ProgressColumn(
-                "Execution Progress",
-                format="%d%%",
-                min_value=0,
-                max_value=100,
-            ),
-        },
-        use_container_width=True,
-        hide_index=True,
+        column_config={"Percent Complete": st.column_config.ProgressColumn("Execution Progress", format="%d%%", min_value=0, max_value=100)},
+        use_container_width=True, hide_index=True,
     )
 
 with tab2:
     st.header("Deviation & Anomaly Management")
     st.caption("Central log for all documented deviations or unexpected results encountered during V&V execution.")
-
-    # Mock data for deviations
     deviation_data = {
         'Deviation ID': ['DEV-24-031', 'DEV-24-032'],
         'Protocol ID': ['V&V-PRO-011', 'V&V-PRO-012'],
         'Date Occurred': [date.today() - timedelta(days=2), date.today() - timedelta(days=1)],
-        'Description': [
-            'Reference instrument Savanna-V&V-01 went OOS mid-run due to a sensor error. Run was aborted.',
-            'Incorrect concentration of control material was used for one run of the precision study.'
-        ],
-        'Impact Assessment': [
-            'Data from aborted run is invalid. Run must be repeated on a qualified instrument. No impact to product quality.',
-            'Run #2 data is invalid and must be excluded from final analysis. A replacement run must be executed.'
-        ],
+        'Description': ['Reference instrument Savanna-V&V-01 went OOS mid-run due to a sensor error. Run was aborted.', 'Incorrect concentration of control material was used for one run of the precision study.'],
+        'Impact Assessment': ['Data from aborted run is invalid. Run must be repeated on a qualified instrument. No impact to product quality.', 'Run #2 data is invalid and must be excluded from final analysis. A replacement run must be executed.'],
         'Status': ['Closed - Action Complete', 'Open - Investigation']
     }
     deviation_df = pd.DataFrame(deviation_data)
-
     st.dataframe(deviation_df, use_container_width=True, hide_index=True)
     st.warning("All deviations must be reviewed, and their impact assessed and documented prior to final V&V report approval. Significant deviations may require escalation to a non-conformance or CAPA.")
-
 
 with tab3:
     st.header("Cross-Functional Collaboration & Oversight")
     st.caption("Managing key interactions with partners and external organizations.")
 
-    c1, c2 = st.columns(2)
-    with c1:
+    col1, col2 = st.columns(2)
+    with col1:
         st.subheader("Design Review Contributions")
-        st.markdown("""
-        The V&V team provides critical input during formal design reviews.
-        - **Phase 1 (Feasibility):** Input on testability of initial concepts.
-        - **Phase 2 (Design Input):** Review User Needs and System Requirements for clarity and verifiability.
-        - **Phase 3 (Design Output):** Confirm trace evidence from V&V studies meets design input requirements.
-        - **Phase 4 (Pre-Launch):** Present V&V summary report and attest to product readiness.
-        """)
-        st.success("V&V Lead has signed off on the last Design Review for this project phase.")
+        design_review_data = {
+            'Phase Gate': ['Design Input Review', 'Design Output Review', 'Launch Readiness Review'],
+            'V&V Attestation': ['✅ Complete', '✅ Complete', 'In Progress'],
+            'Date': [date.today() - timedelta(days=90), date.today() - timedelta(days=15), date.today() + timedelta(days=30)],
+            'Key V&V Deliverable': ['Reviewed URS/SRS for Testability', 'Presented V&V Trace Evidence', 'V&V Summary Report Presentation']
+        }
+        st.dataframe(pd.DataFrame(design_review_data), use_container_width=True, hide_index=True)
 
-    with c2:
+    with col2:
         st.subheader("Contractor & Partner Oversight")
-        st.markdown("""
-        For studies performed by external partners (e.g., Clinical trial sites, Contract Research Orgs):
-        - V&V team authors or approves all study protocols.
-        - V&V team is responsible for reviewing and accepting all raw data and final reports.
-        - All external partner deviations or issues must be logged and assessed internally.
-        """)
         qms_df = generate_capa_data()
-        st.dataframe(qms_df[qms_df['Source'] == 'Contract Lab Deviation'], hide_index=True, use_container_width=True)
+        cro_issues = qms_df[qms_df['Source'] == 'Contract Lab Deviation']
+        if not cro_issues.empty:
+            st.error(f"{len(cro_issues)} Active Issue(s) with External Partners", icon="🚨")
+            for index, row in cro_issues.iterrows():
+                st.info(f"**{row['ID']} ({row['Product']}):** {row['Description']}. **Status:** {row['Phase']}")
+        else:
+            st.success("No active issues with external partners for this project.", icon="✅")
+        st.caption("V&V is responsible for reviewing and accepting all external data and reports.")
 
 st.divider()
 
@@ -126,12 +106,15 @@ st.header("Post-Launch V&V: Change Control Management (ECO Process)")
 st.caption("Oversight of V&V activities required for changes to on-market products.")
 
 change_control_df = generate_change_control_data()
-st.dataframe(change_control_df, use_container_width=True, hide_index=True)
+fig_eco = px.treemap(change_control_df, path=[px.Constant("All ECOs"), 'Status', 'Product Impacted'],
+                     values=None, title='ECO V&V Status Treemap',
+                     color_discrete_map={'(?)':'#17A2B8', 'V&V Complete':'#28A745', 'V&V in Progress':'#FFC107', 'Awaiting V&V Plan':'#DC3545'})
+st.plotly_chart(fig_eco, use_container_width=True)
 
 with st.expander("Director's Role in Change Control"):
     st.markdown("""
-    My role in the ECO process is to be the gatekeeper for product quality and regulatory compliance for all post-launch changes. For every proposed change, I or my assigned V&V lead must:
-    1.  **Perform an Impact Assessment:** Determine the risk of the change and the extent of V&V testing required. A simple labeling change might require no testing, while a reagent formula change could require a full regression of key performance studies.
+    The treemap provides an immediate visual summary of our post-market V&V workload and bottlenecks. A large red area ('Awaiting V&V Plan') signals that my team is a bottleneck in the change control process, which can delay important product updates. My role in the ECO process is to be the gatekeeper for product quality and regulatory compliance for all post-launch changes. For every proposed change, I or my assigned V&V lead must:
+    1.  **Perform an Impact Assessment:** Determine the risk of the change and the extent of V&V testing required.
     2.  **Author and Execute a V&V Plan:** Develop a lean, targeted V&V plan appropriate for the risk level of the change.
-    3.  **Provide a Final V&V Report:** Document the results of the testing, providing the objective evidence that the change did not adversely affect the assay's safety or effectiveness. This report is a key component of the ECO closure package and is documented in the DHF.
+    3.  **Provide a Final V&V Report:** Document the results of the testing, providing the objective evidence that the change did not adversely affect the assay's safety or effectiveness.
     """)
