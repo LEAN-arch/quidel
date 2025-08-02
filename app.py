@@ -11,7 +11,7 @@ from prophet import Prophet
 from prophet.plot import plot_plotly
 import numpy as np
 
-# Import all utility functions from the consolidated, complete utils file
+# Import all utility functions from the final, complete utils file
 from app_utils import *
 
 # --- Page Configuration (Called only once) ---
@@ -93,7 +93,7 @@ def page_executive_command_center():
     st.header("Validation Portfolio: Detailed Financial and Performance View")
     st.dataframe(projects_df[['Project/Assay', 'Type', 'V&V Lead', 'Overall Status', 'V&V Phase', 'Budget (USD)', 'Spent (USD)', 'Schedule Performance Index (SPI)', 'First Time Right %']], use_container_width=True, hide_index=True)
     with st.expander("🌐 Manager's Mandate: The 'Why' Behind This Dashboard", expanded=True):
-        st.markdown("As a Manager of Validation Engineering, this dashboard provides the objective evidence needed to manage my team, collaborate with engineering partners, mitigate risks, and confidently attest to the validated state of our facility during regulatory audits.")
+        st.markdown("""As a Manager of Validation Engineering, my mandate is to ensure every piece of manufacturing equipment and its associated processes are robust, compliant, and ready to support production. This integrated Command Center provides the objective evidence needed to manage my team, collaborate with engineering partners, mitigate risks, and confidently attest to the validated state of our facility during regulatory audits.""")
 
 # =====================================================================================
 # === PAGE 2: VALIDATION MASTER PROGRAM ===============================================
@@ -102,7 +102,7 @@ def page_vmp_dashboard():
     st.title("VMP: Validation Master Program Dashboard")
     st.markdown("### Site-Level Oversight of Equipment, Utility, and Software Validation Status")
     with st.expander("🌐 Manager's View: Maintaining a Compliant and Audit-Ready State", expanded=True):
-        st.markdown("This dashboard, derived from our Validation Master Plan (VMP), provides a comprehensive, live overview of the validation status of all GxP systems. It is my primary tool for managing revalidation schedules and demonstrating a state of control to regulatory auditors (21 CFR 820.75, ISO 13485:2016, 7.5.6).")
+        st.markdown("As the Manager of Validation Engineering, I am responsible for the health of the entire site's validation program. This dashboard, derived from our Validation Master Plan (VMP), provides a comprehensive, live overview of the validation status of all GxP systems. It is my primary tool for managing revalidation schedules, allocating resources, and demonstrating a state of control to regulatory auditors (21 CFR 820.75, ISO 13485:2016, 7.5.6).")
     
     vmp_df = generate_validation_program_data()
     st.header("Site Validation Program Health Metrics")
@@ -116,11 +116,7 @@ def page_vmp_dashboard():
     st.divider()
     tab1, tab2 = st.tabs(["**Revalidation Schedule & Timeline**", "**Validation Status by System Type**"])
     with tab1:
-        fig_timeline = px.timeline(
-            vmp_df, x_start="Last_Validation_Date", x_end="Next_Revalidation_Date", y="System_Name", color="Validation_Status",
-            title="System Validation Lifecycle & Revalidation Due Dates",
-            color_discrete_map={'Validated': '#28A745', 'Validation in Progress': '#007BFF', 'Revalidation Due': '#FFC107', 'Revalidation Overdue': '#DC3545'}
-        )
+        fig_timeline = px.timeline(vmp_df, x_start="Last_Validation_Date", x_end="Next_Revalidation_Date", y="System_Name", color="Validation_Status", title="System Validation Lifecycle & Revalidation Due Dates", color_discrete_map={'Validated': '#28A745', 'Validation in Progress': '#007BFF', 'Revalidation Due': '#FFC107', 'Revalidation Overdue': '#DC3545'})
         today = pd.Timestamp.now()
         fig_timeline.add_shape(type="line", x0=today, y0=-0.5, x1=today, y1=len(vmp_df)-0.5, line=dict(color="Red", width=3, dash="dash"))
         st.plotly_chart(fig_timeline, use_container_width=True)
@@ -130,11 +126,7 @@ def page_vmp_dashboard():
             if id_str.startswith('SW'): return 'Software'
             return 'Utility'
         vmp_df['System_Type'] = vmp_df['System_ID'].apply(get_system_type)
-        fig_treemap = px.treemap(
-            vmp_df, path=[px.Constant("All Site Systems"), 'System_Type', 'Validation_Status', 'System_Name'],
-            title='Hierarchical View of Site Validation Status', color='Validation_Status',
-            color_discrete_map={'(?)':'#17A2B8', 'Validated':'#28A745', 'Validation in Progress':'#007BFF', 'Revalidation Due':'#FFC107', 'Revalidation Overdue': '#DC3545'}
-        )
+        fig_treemap = px.treemap(vmp_df, path=[px.Constant("All Site Systems"), 'System_Type', 'Validation_Status', 'System_Name'], title='Hierarchical View of Site Validation Status', color='Validation_Status', color_discrete_map={'(?)':'#17A2B8', 'Validated':'#28A745', 'Validation in Progress':'#007BFF', 'Revalidation Due':'#FFC107', 'Revalidation Overdue': '#DC3545'})
         st.plotly_chart(fig_treemap, use_container_width=True)
     
     st.header("Validation Master List")
@@ -145,6 +137,9 @@ def page_vmp_dashboard():
 # =====================================================================================
 def page_equipment_validation():
     st.title("🏭 Equipment Validation Lifecycle Dashboard")
+    with st.expander("🌐 Manager's View: Ensuring Manufacturing Readiness", expanded=True):
+        st.markdown("This dashboard provides a detailed, phase-by-phase view of a major capital equipment validation project. It tracks the progression from vendor site testing (FAT) to on-site verification (SAT, IQ, OQ) and final process performance demonstration (PQ).")
+    
     projects_df = generate_vv_project_data()
     equip_project_list = projects_df[projects_df['Type'] == 'Equipment']['Project/Assay'].tolist()
     if not equip_project_list: st.warning("No equipment validation projects found."); return
@@ -173,6 +168,9 @@ def page_equipment_validation():
 # =====================================================================================
 def page_assay_planning():
     st.title("🗺️ Assay V&V Planning & Strategy Dashboard")
+    with st.expander("🌐 Manager's View: Laying the Foundation for Compliant Assay V&V", expanded=True):
+        st.markdown("Effective planning is the most critical phase of the V&V lifecycle. This dashboard is my tool for overseeing the key planning deliverables that form the bedrock of a successful and auditable V&V campaign for our diagnostic assays (21 CFR 820.30(b), ISO 13485, 7.3.3).")
+    
     projects_df = generate_vv_project_data()
     assay_project_list = projects_df[projects_df['Type'].isin(['Assay', 'Software'])]['Project/Assay'].tolist()
     selected_project = st.selectbox("**Select an Assay/Software Project:**", options=assay_project_list, index=0)
@@ -201,11 +199,14 @@ def page_assay_planning():
 # =====================================================================================
 def page_assay_execution():
     st.title("🚀 Assay V&V Execution & Leadership Hub")
+    with st.expander("🌐 Manager's View: Driving Execution and Ensuring Alignment", expanded=True):
+        st.markdown("This hub provides me with the tools to actively lead the V&V team through the execution phase and manage our critical cross-functional interactions and post-market change control (21 CFR 820.40).")
+    
     tab1, tab2 = st.tabs(["**Protocol & Deviation Management**", "**Post-Launch Change Control**"])
     with tab2:
         st.header("Change Control Management (ECO Process)")
         change_control_df = generate_change_control_data()
-        fig_eco = px.treemap(change_control_df, path=[px.Constant("All ECOs"), 'Status', 'Product Impacted'], title='ECO V&V Status Treemap')
+        fig_eco = px.treemap(change_control_df, path=[px.Constant("All ECOs"), 'Status', 'Product Impacted'], title='ECO V&V Status Treemap', color_discrete_map={'(?)':'#17A2B8', 'V&V Complete':'#28A745', 'V&V in Progress':'#FFC107', 'Awaiting V&V Plan':'#DC3545'})
         st.plotly_chart(fig_eco, use_container_width=True)
 
 # =====================================================================================
@@ -213,6 +214,9 @@ def page_assay_execution():
 # =====================================================================================
 def page_analytical_studies():
     st.title("📈 Analytical Performance Studies Dashboard")
+    with st.expander("🌐 Manager's View: The Role of Analytical Verification", expanded=True):
+        st.markdown("This dashboard provides the objective evidence required to verify that our assays meet their design input requirements per 21 CFR 820.30(f), using methods harmonized with CLSI guidelines.")
+    
     tab1, tab2, tab3 = st.tabs(["**Precision (CLSI EP05)**", "**Method Comparison (CLSI EP09)**", "**Lot-to-Lot Equivalence**"])
     with tab1:
         precision_df = generate_precision_data_clsi_ep05()
