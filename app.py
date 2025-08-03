@@ -2146,13 +2146,13 @@ def render_portfolio_page() -> None:
         # --- END OF THE FIX ---
     
         # The rest of the page content remains the same.
-        st.subheader("Integrated Resource Allocation Matrix")
-        with st.container(border=True):
-            fig_alloc, over_allocated_df = create_resource_allocation_matrix("allocation")
-            st.plotly_chart(fig_alloc, use_container_width=True)
-            if not over_allocated_df.empty:
-                for _, row in over_allocated_df.iterrows():
-                    st.warning(f"**⚠️ Over-allocation Alert:** {row['Team Member']} is allocated at {row['Total Allocation']}%. This is unsustainable and poses a risk of burnout and project delays.")
+    st.subheader("Integrated Resource Allocation Matrix")
+    with st.container(border=True):
+        fig_alloc, over_allocated_df = create_resource_allocation_matrix("allocation")
+        st.plotly_chart(fig_alloc, use_container_width=True)
+        if not over_allocated_df.empty:
+            for _, row in over_allocated_df.iterrows():
+                st.warning(f"**⚠️ Over-allocation Alert:** {row['Team Member']} is allocated at {row['Total Allocation']}%. This is unsustainable and poses a risk of burnout and project delays.")
         # --- ENHANCEMENT END ---
 
 def render_learning_hub_page() -> None:
