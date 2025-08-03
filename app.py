@@ -2145,8 +2145,12 @@ def render_portfolio_page() -> None:
         # The rest of the page content remains the same.
     st.subheader("Integrated Resource Allocation Matrix")
     with st.container(border=True):
+        # This function call is now safely inside the page rendering function.
+        # It will only execute when this page is viewed.
         fig_alloc, over_allocated_df = create_resource_allocation_matrix("allocation")
         st.plotly_chart(fig_alloc, use_container_width=True)
+        
+        # Display over-allocation warnings
         if not over_allocated_df.empty:
             for _, row in over_allocated_df.iterrows():
                 st.warning(f"**⚠️ Over-allocation Alert:** {row['Team Member']} is allocated at {row['Total Allocation']}%. This is unsustainable and poses a risk of burnout and project delays.")
