@@ -2106,7 +2106,7 @@ def render_portfolio_page() -> None:
     # In render_portfolio_page()
     
     st.subheader("Project Portfolio Health (RAG Status)")
-        with st.container(border=True):
+    with st.container(border=True):
             # This call now only happens when render_portfolio_page() is executed.
             st.dataframe(create_portfolio_health_dashboard("portfolio"), use_container_width=True, hide_index=True)
             
