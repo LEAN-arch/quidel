@@ -1942,10 +1942,10 @@ def render_dhf_hub_page() -> None:
                     )
 # --- ENHANCEMENT END ---
 
-st.subheader("3.0 Results vs. Acceptance Criteria")
+                st.subheader("3.0 Results vs. Acceptance Criteria")
 # --- ENHANCEMENT END ---
 
-st.subheader("3.0 Results vs. Acceptance Criteria")
+                st.subheader("3.0 Results vs. Acceptance Criteria")
                 st.subheader("3.0 Results vs. Acceptance Criteria")
                 
                 # Create a DataFrame for the results
