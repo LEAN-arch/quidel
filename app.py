@@ -1344,17 +1344,88 @@ def get_complaint_data() -> pd.DataFrame:
 # --- PAGE RENDERING FUNCTIONS ---
 
 def render_main_page() -> None:
-    """Renders the main Executive Summary page."""
+    """
+    Renders the greatly extended and enticing Executive Summary page,
+    with a tone and content tailored to the hiring manager and role.
+    """
+    
     st.title("🎯 The V&V Executive Command Center")
-    st.markdown("A definitive showcase of data-driven leadership in a regulated GxP environment.")
-    st.markdown("---")
-    render_director_briefing(
-        "Portfolio Objective", 
-        "This interactive application translates the core responsibilities of V&V leadership into a suite of high-density dashboards. It is designed to be an overwhelming and undeniable demonstration of the strategic, technical, and quality systems expertise required for a senior leadership role in the medical device industry.", 
-        "ISO 13485, ISO 14971, IEC 62304, 21 CFR 820, 21 CFR Part 11, CLSI Guidelines", 
-        "A well-led V&V function directly accelerates time-to-market, reduces compliance risk, lowers the cost of poor quality (COPQ), and builds a culture of data-driven excellence."
+    st.subheader("A Live Demonstration of Strategic V&V Leadership for QuidelOrtho")
+    st.divider()
+
+    st.markdown(
+        """
+        Welcome to the V&V Executive Command Center. This is not a slideshow or a static resume; it is a **fully interactive, data-driven simulation of how a world-class V&V department is led and managed**. It is designed to be an undeniable demonstration of the strategic, technical, and quality systems expertise required for the Associate Director, Assay V&V role.
+        
+        Every chart, metric, and AI model in this application is a tangible answer to a critical business question, proving a mastery of the tools and mindset needed to transform V&V from a downstream cost center into an upstream, value-driving strategic partner.
+        """
     )
-    st.info("Please use the navigation sidebar on the left to explore each of the core competency areas.")
+    
+    st.subheader("💡 Core Leadership Philosophy: V&V as a Center of Excellence")
+    st.markdown(
+        """
+        This portfolio is built on a core philosophy: a modern V&V leader must operate fluently at the intersection of three key domains. This application proves that capability by providing interactive evidence across all of them:
+        """
+    )
+    
+    # --- Pillar 1: Strategic Leadership & Business Acumen ---
+    st.markdown("#### 1. Strategic Leadership & Business Acumen")
+    with st.container(border=True):
+        st.markdown(
+            """
+            *Demonstrating the ability to manage V&V as a financially responsible business unit that directly impacts corporate goals.*
+            
+            - **V&V Business & Quality Metrics Hub (`Tab 11`):** Go beyond technical metrics to manage departmental OpEx and, crucially, model the direct **Return on Investment (ROI)** of V&V by quantifying its impact on reducing the company-wide **Cost of Poor Quality (COPQ)**. This speaks the language of the C-suite.
+            
+            - **Global V&V Strategy & R&D Pipeline Advisor (`Tab 14`):** Use historical data and AI to forecast V&V costs, timelines, and risks for the future R&D pipeline. This transforms V&V into an upstream strategic advisor, enabling data-driven Go/No-Go decisions on new projects.
+            
+            - **V&V Portfolio Command Center (`Tab 12`):** Manage a portfolio of competing projects, balance finite resources across teams, and provide clear, high-level **RAG status** updates to executive leadership—including simulations of how to escalate resource conflicts with data.
+            """
+        )
+
+    # --- Pillar 2: Technical Mastery & QMS Compliance ---
+    st.markdown("#### 2. Technical Mastery & QMS Compliance")
+    with st.container(border=True):
+        st.markdown(
+            """
+            *Proving deep, hands-on expertise in the core technical and regulatory requirements of assay development.*
+
+            - **Digital DHF & Workflow Hub (`Tab 8`):** Showcase documentation excellence with professionally rendered, compliant **V&V Protocols and Reports**. Includes an interactive "Audit Defense" simulation to prove the ability to defend the team's work to regulators.
+            
+            - **Design Controls & Planning (`Tab 1`):** Demonstrate mastery of the Design History File (DHF) with interactive **V-Models**, a live **Requirements Traceability Matrix (RTM)**, and product **Risk Management (FMEA)** tools.
+            
+            - **Execution Monitoring & SPC (`Tab 3`):** Implement industrial-grade **Statistical Process Control**, including Levey-Jennings charts with **automated Westgard rule detection** and proper X-bar & R charts for manufacturing process monitoring.
+            """
+        )
+
+    # --- Pillar 3: Operational Excellence & Modernization ---
+    st.markdown("#### 3. Operational Excellence & Modernization")
+    with st.container(border=True):
+        st.markdown(
+            """
+            *Building a high-performance, efficient, and forward-thinking V&V engine.*
+
+            - **Post-Market Intelligence & CAPA Feeder (`Tab 7`):** Close the quality loop by using AI-driven **sentiment analysis** and **NLP topic modeling** on customer complaint data to identify emerging trends and provide data-driven triggers for the CAPA system. Includes a simulation of the investigation triage process.
+            
+            - **V&V Operations & Automation (`Tab 9`):** Use data to justify capital expenditure (CapEx) with **instrument utilization heatmaps** and AI-powered demand forecasting. Demonstrate the ROI of test automation.
+            
+            - **AI-Powered Predictive Maintenance (`Tab 7`):** Deploy **explainable AI (XAI)** models like SHAP to predict instrument failures *before* they occur, reducing unplanned downtime and costly failed runs.
+            """
+        )
+        
+    st.success("**Please use the navigation sidebar on the left to explore the live evidence for each of these competencies.**")
+
+    # The formal objective is retained as a concise, professional summary at the end.
+    render_director_briefing(
+        "Formal Portfolio Objective",
+        "To provide a live, interactive, and comprehensive validation of the skills and leadership philosophy required to excel as the Associate Director of Assay V&V at QuidelOrtho.",
+        "A well-led V&V function directly accelerates time-to-market, reduces compliance risk, lowers the cost of poor quality (COPQ), and builds a culture of data-driven excellence.",
+        "ISO 13485, ISO 14971, IEC 62304, 21 CFR 820, 21 CFR Part 11, CLSI Guidelines"
+    )
+
+
+def render_design_controls_page() -> None:
+    """Renders the Design Controls, Planning & Risk Management page."""
 
 
 def render_design_controls_page() -> None:
