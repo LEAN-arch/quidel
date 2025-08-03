@@ -2089,68 +2089,47 @@ def render_portfolio_page() -> None:
     st.subheader("Project Portfolio Health (RAG Status)")
     with st.container(border=True):
         st.dataframe(create_portfolio_health_dashboard("portfolio"), use_container_width=True, hide_index=True)
-        st.error("**Actionable Insight:** The CardioScreen-X project is flagged 'Red' for both Technical Risk and Resource Strain. The V&V team is currently unable to support the aggressive feasibility timeline. **Action:** Escalate to the project core team to either de-scope the initial phase or re-allocate bioinformatics resources from another project.")
+        st.error("**Actionable Insight:** The CardioScreen-X project is flagged 'Red' for both Technical Risk and Resource Strain. The V&V team is currently unable to support the aggressive feasibility timeline.")
+        if st.button("Simulate Escalation Memo to Core Team", key="escalate_cardio"):
+            st.subheader("Generated Escalation Memo")
+            st.info("This is the type of clear, data-driven communication required to resolve cross-functional roadblocks.")
+            st.text_area(
+                "Memo Draft:",
+                """
+TO: Project Core Team Lead, CardioScreen-X
+FROM: Associate Director, Assay V&V
+SUBJECT: URGENT: V&V Resource Deficit and Risk Assessment for CardioScreen-X
 
+Team,
+
+This memo is to formally escalate a critical resource and technical risk for the CardioScreen-X project, as identified in our V&V Portfolio Command Center.
+
+1.  **The Issue:** The project is currently 'Red' due to a combination of high technical risk and insufficient resource allocation within the V&V team. Our current V&V staffing cannot support the aggressive feasibility timeline without jeopardizing quality or impacting other critical projects.
+
+2.  **The Data:** Our resource matrix confirms that key personnel with the required bioinformatics skills are over-allocated.
+
+3.  **The Recommendation:** I request an immediate core team meeting to discuss one of the following mitigation strategies:
+    a) De-scoping the initial feasibility phase to reduce the V&V burden.
+    b) Re-allocating dedicated bioinformatics resources from a lower-priority project for the duration of this phase.
+
+Please advise on scheduling this discussion at your earliest convenience. We must address this to maintain the project's viability.
+
+Regards,
+[Your Name]
+Associate Director, Assay V&V
+                """,
+                height=350
+            )
+            
     st.subheader("Integrated Resource Allocation Matrix")
     with st.container(border=True):
-        # This function was refactored to return the fig and the over_allocated DataFrame
+        # 1. Call the helper function to get the figure and data.
         fig_alloc, over_allocated_df = create_resource_allocation_matrix("allocation")
-        st.plotly_chart(fig_alloc, use_container_width=True)
-        if not over_allocated_df.empty:
-            for _, row in over_allocated_df.iterrows():
-                st.warning(f"**⚠️ Over-allocation Alert:** {row['Team Member']} is allocated at {row['Total Allocation']}%. This is unsustainable and poses a risk of burnout and project delays.")
-
-    # In render_portfolio_page()
-    
-    st.subheader("Project Portfolio Health (RAG Status)")
-    with st.container(border=True):
-            # This call now only happens when render_portfolio_page() is executed.
-            st.dataframe(create_portfolio_health_dashboard("portfolio"), use_container_width=True, hide_index=True)
-            
-            st.error("**Actionable Insight:** The CardioScreen-X project is flagged 'Red' for both Technical Risk and Resource Strain. The V&V team is currently unable to support the aggressive feasibility timeline.")
-            
-            # This is the actionability enhancement, correctly placed here.
-            if st.button("Simulate Escalation Memo to Core Team", key="escalate_cardio"):
-                st.subheader("Generated Escalation Memo")
-                st.info("This is the type of clear, data-driven communication required to resolve cross-functional roadblocks.")
-                st.text_area(
-                    "Memo Draft:",
-                    """
-    TO: Project Core Team Lead, CardioScreen-X
-    FROM: Associate Director, Assay V&V
-    SUBJECT: URGENT: V&V Resource Deficit and Risk Assessment for CardioScreen-X
-    
-    Team,
-    
-    This memo is to formally escalate a critical resource and technical risk for the CardioScreen-X project, as identified in our V&V Portfolio Command Center.
-    
-    1.  **The Issue:** The project is currently 'Red' due to a combination of high technical risk and insufficient resource allocation within the V&V team. Our current V&V staffing cannot support the aggressive feasibility timeline without jeopardizing quality or impacting other critical projects.
-    
-    2.  **The Data:** Our resource matrix confirms that key personnel with the required bioinformatics skills are over-allocated.
-    
-    3.  **The Recommendation:** I request an immediate core team meeting to discuss one of the following mitigation strategies:
-        a) De-scoping the initial feasibility phase to reduce the V&V burden.
-        b) Re-allocating dedicated bioinformatics resources from a lower-priority project for the duration of this phase.
-    
-    Please advise on scheduling this discussion at your earliest convenience. We must address this to maintain the project's viability.
-    
-    Regards,
-    Jose Bautista MSc, LSSBB, PMP
-    Associate Director, Assay V&V
-                    """,
-                    height=350
-                )
-        # --- END OF THE FIX ---
-    
-        # The rest of the page content remains the same.
-    st.subheader("Integrated Resource Allocation Matrix")
-    with st.container(border=True):
-        # This function call is now safely inside the page rendering function.
-        # It will only execute when this page is viewed.
-        fig_alloc, over_allocated_df = create_resource_allocation_matrix("allocation")
+        
+        # 2. Render the returned figure ONCE. This is the only place this chart is drawn.
         st.plotly_chart(fig_alloc, use_container_width=True)
         
-        # Display over-allocation warnings
+        # 3. Use the returned dataframe to display warnings.
         if not over_allocated_df.empty:
             for _, row in over_allocated_df.iterrows():
                 st.warning(f"**⚠️ Over-allocation Alert:** {row['Team Member']} is allocated at {row['Total Allocation']}%. This is unsustainable and poses a risk of burnout and project delays.")
