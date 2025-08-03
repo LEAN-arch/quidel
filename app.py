@@ -1944,10 +1944,7 @@ def render_dhf_hub_page() -> None:
 
                 st.subheader("3.0 Results vs. Acceptance Criteria")
 # --- ENHANCEMENT END ---
-
-                st.subheader("3.0 Results vs. Acceptance Criteria")
-                st.subheader("3.0 Results vs. Acceptance Criteria")
-                
+              
                 # Create a DataFrame for the results
                 results_data = {
                     'Concentration (copies/mL)': [50, 25, 10, 0],
