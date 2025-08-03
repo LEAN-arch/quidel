@@ -1836,32 +1836,32 @@ def render_post_market_page():
 # In render_post_market_page()
 
 # ... after the CAPA alert is triggered ...
-if len(capa_filter) > 10:
-    st.error(...) # The existing CAPA alert
-
-    # --- ENHANCEMENT START ---
-    with st.expander("📝 Open V&V Investigation Triage Form"):
-        st.subheader("Initial V&V Plan for CAPA-2024-001")
-        
-        assigned_team = st.multiselect(
-            "Assign V&V Team Members for Initial Investigation:",
-            ['Alice (Statistics)', 'Bob (Reagent Expert)', 'Charlie (Instrumentation)'],
-            default=['Bob (Reagent Expert)']
-        )
-        
-        priority = st.selectbox(
-            "Set Investigation Priority:",
-            ("High", "Medium", "Low"),
-            index=0
-        )
-        
-        hypothesis = st.text_area(
-            "Enter Initial Investigation Hypothesis:",
-            "Given the complaints are localized to Lot #A2301-B, the initial hypothesis is a raw material deviance or a process error during the manufacturing of this specific lot. We will start by testing retained samples against a control lot."
-        )
-        
-        if st.button("Log Initial Plan & Notify Quality Team"):
-            st.success(f"Plan Logged! Assigned to: {', '.join(assigned_team)}. Priority: {priority}. Quality Assurance has been notified to formalize the CAPA record.")
+    if len(capa_filter) > 10:
+        st.error(...) # The existing CAPA alert
+    
+        # --- ENHANCEMENT START ---
+        with st.expander("📝 Open V&V Investigation Triage Form"):
+            st.subheader("Initial V&V Plan for CAPA-2024-001")
+            
+            assigned_team = st.multiselect(
+                "Assign V&V Team Members for Initial Investigation:",
+                ['Alice (Statistics)', 'Bob (Reagent Expert)', 'Charlie (Instrumentation)'],
+                default=['Bob (Reagent Expert)']
+            )
+            
+            priority = st.selectbox(
+                "Set Investigation Priority:",
+                ("High", "Medium", "Low"),
+                index=0
+            )
+            
+            hypothesis = st.text_area(
+                "Enter Initial Investigation Hypothesis:",
+                "Given the complaints are localized to Lot #A2301-B, the initial hypothesis is a raw material deviance or a process error during the manufacturing of this specific lot. We will start by testing retained samples against a control lot."
+            )
+            
+            if st.button("Log Initial Plan & Notify Quality Team"):
+                st.success(f"Plan Logged! Assigned to: {', '.join(assigned_team)}. Priority: {priority}. Quality Assurance has been notified to formalize the CAPA record.")
     # --- ENHANCEMENT END ---
 
 def render_dhf_hub_page() -> None:
