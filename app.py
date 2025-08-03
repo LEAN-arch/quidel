@@ -1349,24 +1349,22 @@ def render_main_page() -> None:
     with a tone and content tailored to the hiring manager and role.
     """
     
-    st.title("🎯 The V&V Executive Command Center")
+    st.title("🎯 The Assay V&V Executive Command Center")
     st.subheader("A Live Demonstration of Strategic V&V Leadership for QuidelOrtho")
     st.divider()
 
     st.markdown(
         """
-        Welcome to the V&V Executive Command Center. This interactive environment is designed to illustrate how I approach assay V&V leadership — with a focus on aligning technical execution, quality systems, and strategic priorities. It’s not meant to replace existing practices, but rather to demonstrate how I think, how I lead, and how I can adapt to meet organizational goals. It is designed to be an undeniable demonstration of the strategic, technical, and quality systems expertise required for the Associate Director, Assay V&V role.
+        Welcome. This interactive environment is designed to illustrate my approach to Assay V&V leadership by simulating how a world-class department is managed, with a specific **focus on aligning technical execution, quality systems, and strategic priorities.**
         
-        Rather than a static resume, this platform offers a dynamic representation of the tools, metrics, and decision models I’ve used to support cross-functional teams, accelerate time-to-market, and strengthen compliance and quality outcomes. Every chart, metric, and AI model in this application is a tangible answer to a critical business question, proving a mastery of the tools and mindset needed to transform V&V from a downstream cost center into an upstream, value-driving strategic partner.
+        Rather than a static resume, this platform offers a dynamic representation of the tools, metrics, and decision models I use to support cross-functional teams, accelerate time-to-market, and strengthen compliance and quality outcomes.
         """
     )
     
-    st.subheader("💡 Core Leadership Philosophy: V&V as a Center of Excellence and Value-Driving Partner")
+    st.subheader("🔷 Core Philosophy: V&V as a Value-Driving Partner")
     st.markdown(
         """
-        TV&V functions best when it operates as a strategic partner, working across R&D, Quality, and Operations to proactively manage risk, resourcing, and technical readiness. This portfolio reflects that philosophy through real examples of data-driven planning, risk-based prioritization, and operational visibility.
-
-        It’s a starting point — not a prescription. I’d welcome the opportunity to explore how this experience and approach could support the goals of QuidelOrtho and integrate seamlessly with the strengths of your current team.:
+        I believe V&V functions best when it operates as a strategic partner—working across R&D, Quality, and Operations to **proactively manage risk, resourcing, and technical readiness.** This portfolio reflects that philosophy through tangible examples of data-driven planning and operational visibility.
         """
     )
     
@@ -1414,7 +1412,16 @@ def render_main_page() -> None:
             - **AI-Powered Predictive Maintenance (`Tab 7`):** Deploy **explainable AI (XAI)** models like SHAP to predict instrument failures *before* they occur, reducing unplanned downtime and costly failed runs.
             """
         )
+    
+    st.subheader("🤝 A Foundation for Partnership")
+    st.markdown(
+        """
+        This portfolio is a tangible starting point for a deeper conversation. It is not a prescription, but a demonstration of adaptability and a data-driven mindset. 
         
+        I would welcome the opportunity to explore how this experience and approach could **support the goals of QuidelOrtho and integrate seamlessly with the strengths of your current team.**
+        """
+    )
+    
     st.success("**Please use the navigation sidebar on the left to explore the live evidence for each of these competencies.**")
 
     # The formal objective is retained as a concise, professional summary at the end.
