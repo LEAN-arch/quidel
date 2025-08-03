@@ -1355,16 +1355,18 @@ def render_main_page() -> None:
 
     st.markdown(
         """
-        Welcome to the V&V Executive Command Center. This is not a slideshow or a static resume; it is a **fully interactive, data-driven simulation of how a world-class V&V department is led and managed**. It is designed to be an undeniable demonstration of the strategic, technical, and quality systems expertise required for the Associate Director, Assay V&V role.
+        Welcome to the V&V Executive Command Center. This interactive environment is designed to illustrate how I approach assay V&V leadership — with a focus on aligning technical execution, quality systems, and strategic priorities. It’s not meant to replace existing practices, but rather to demonstrate how I think, how I lead, and how I can adapt to meet organizational goals. It is designed to be an undeniable demonstration of the strategic, technical, and quality systems expertise required for the Associate Director, Assay V&V role.
         
-        Every chart, metric, and AI model in this application is a tangible answer to a critical business question, proving a mastery of the tools and mindset needed to transform V&V from a downstream cost center into an upstream, value-driving strategic partner.
+        Rather than a static resume, this platform offers a dynamic representation of the tools, metrics, and decision models I’ve used to support cross-functional teams, accelerate time-to-market, and strengthen compliance and quality outcomes. Every chart, metric, and AI model in this application is a tangible answer to a critical business question, proving a mastery of the tools and mindset needed to transform V&V from a downstream cost center into an upstream, value-driving strategic partner.
         """
     )
     
-    st.subheader("💡 Core Leadership Philosophy: V&V as a Center of Excellence")
+    st.subheader("💡 Core Leadership Philosophy: V&V as a Center of Excellence and Value-Driving Partner")
     st.markdown(
         """
-        This portfolio is built on a core philosophy: a modern V&V leader must operate fluently at the intersection of three key domains. This application proves that capability by providing interactive evidence across all of them:
+        TV&V functions best when it operates as a strategic partner, working across R&D, Quality, and Operations to proactively manage risk, resourcing, and technical readiness. This portfolio reflects that philosophy through real examples of data-driven planning, risk-based prioritization, and operational visibility.
+
+        It’s a starting point — not a prescription. I’d welcome the opportunity to explore how this experience and approach could support the goals of QuidelOrtho and integrate seamlessly with the strengths of your current team.:
         """
     )
     
