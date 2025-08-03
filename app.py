@@ -1833,6 +1833,37 @@ def render_post_market_page():
             
             st.success("**Actionable Insight:** The AI has automatically identified a recurring theme related to 'leaky reagent packs'. This quantitative signal elevates the issue's priority and provides a strong justification for launching a formal investigation with the packaging engineering team.")
 
+# In render_post_market_page()
+
+# ... after the CAPA alert is triggered ...
+if len(capa_filter) > 10:
+    st.error(...) # The existing CAPA alert
+
+    # --- ENHANCEMENT START ---
+    with st.expander("📝 Open V&V Investigation Triage Form"):
+        st.subheader("Initial V&V Plan for CAPA-2024-001")
+        
+        assigned_team = st.multiselect(
+            "Assign V&V Team Members for Initial Investigation:",
+            ['Alice (Statistics)', 'Bob (Reagent Expert)', 'Charlie (Instrumentation)'],
+            default=['Bob (Reagent Expert)']
+        )
+        
+        priority = st.selectbox(
+            "Set Investigation Priority:",
+            ("High", "Medium", "Low"),
+            index=0
+        )
+        
+        hypothesis = st.text_area(
+            "Enter Initial Investigation Hypothesis:",
+            "Given the complaints are localized to Lot #A2301-B, the initial hypothesis is a raw material deviance or a process error during the manufacturing of this specific lot. We will start by testing retained samples against a control lot."
+        )
+        
+        if st.button("Log Initial Plan & Notify Quality Team"):
+            st.success(f"Plan Logged! Assigned to: {', '.join(assigned_team)}. Priority: {priority}. Quality Assurance has been notified to formalize the CAPA record.")
+    # --- ENHANCEMENT END ---
+
 def render_dhf_hub_page() -> None:
     """Renders the Digital DHF & Workflow Hub page."""
     st.title("🗂️ 8. The Digital DHF & Workflow Hub")
@@ -1897,7 +1928,24 @@ def render_dhf_hub_page() -> None:
                 
                 st.subheader("2.0 Deviations")
                 st.info("**DEV-001:** One replicate at the 25 copies/mL level on Instrument #2 was invalidated due to an operator error. The replicate was repeated successfully. **Impact Assessment:** None.")
+                # --- ENHANCEMENT START ---
+            with st.container(border=True):
+                st.markdown("##### 🛡️ Simulate Audit Defense")
+                if st.button("Query this deviation", key="audit_dev_001"):
+                    st.warning("**Auditor Query:** 'Your deviation report states 'Impact: None.' Please provide the objective evidence and rationale for this conclusion.'")
+                    st.success(
+                        """
+                        **My Response:** "Certainly. The deviation was a documented operator error on a single replicate out of 60 for that level, and over 300 total data points in the study. The protocol's acceptance criteria are based on the aggregate performance across all valid runs. 
+                        
+                        We immediately followed our SOP for handling such events, which required invalidating the data point, documenting the root cause, and repeating the replicate. The successful re-test and the statistical power of the overall study design give us high confidence that this isolated, corrected event had no material impact on the final study conclusion or the validity of the LoD claim."
+                        """
+                    )
+# --- ENHANCEMENT END ---
 
+st.subheader("3.0 Results vs. Acceptance Criteria")
+# --- ENHANCEMENT END ---
+
+st.subheader("3.0 Results vs. Acceptance Criteria")
                 st.subheader("3.0 Results vs. Acceptance Criteria")
                 
                 # Create a DataFrame for the results
@@ -2055,6 +2103,46 @@ def render_portfolio_page() -> None:
             for _, row in over_allocated_df.iterrows():
                 st.warning(f"**⚠️ Over-allocation Alert:** {row['Team Member']} is allocated at {row['Total Allocation']}%. This is unsustainable and poses a risk of burnout and project delays.")
 
+# In render_portfolio_page()
+
+st.subheader("Project Portfolio Health (RAG Status)")
+with st.container(border=True):
+    st.dataframe(create_portfolio_health_dashboard("portfolio"), use_container_width=True, hide_index=True)
+    
+    # --- ENHANCEMENT START ---
+    st.error("**Actionable Insight:** The CardioScreen-X project is flagged 'Red' for both Technical Risk and Resource Strain. The V&V team is currently unable to support the aggressive feasibility timeline.")
+    
+    if st.button("Simulate Escalation Memo to Core Team", key="escalate_cardio"):
+        st.subheader("Generated Escalation Memo")
+        st.info("This is the type of clear, data-driven communication required to resolve cross-functional roadblocks.")
+        st.text_area(
+            "Memo Draft:",
+            """
+TO: Project Core Team Lead, CardioScreen-X
+FROM: Associate Director, Assay V&V
+SUBJECT: URGENT: V&V Resource Deficit and Risk Assessment for CardioScreen-X
+
+Team,
+
+This memo is to formally escalate a critical resource and technical risk for the CardioScreen-X project, as identified in our V&V Portfolio Command Center.
+
+1.  **The Issue:** The project is currently 'Red' due to a combination of high technical risk and insufficient resource allocation within the V&V team. Our current V&V staffing cannot support the aggressive feasibility timeline without jeopardizing quality or impacting other critical projects.
+
+2.  **The Data:** Our resource matrix confirms that key personnel with the required bioinformatics skills are over-allocated.
+
+3.  **The Recommendation:** I request an immediate core team meeting to discuss one of the following mitigation strategies:
+    a) De-scoping the initial feasibility phase to reduce the V&V burden.
+    b) Re-allocating dedicated bioinformatics resources from a lower-priority project for the duration of this phase.
+
+Please advise on scheduling this discussion at your earliest convenience. We must address this to maintain the project's viability.
+
+Regards,
+Jose Bautista, MSc, PMP LSSBB
+Associate Director, Assay V&V
+            """,
+            height=350
+        )
+    # --- ENHANCEMENT END ---
 
 def render_learning_hub_page() -> None:
     """Renders the Organizational Learning & Knowledge Hub page."""
