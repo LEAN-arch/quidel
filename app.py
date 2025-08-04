@@ -1350,7 +1350,7 @@ def render_main_page() -> None:
     """
     
     st.title("🎯 The Assay V&V Executive Command Center")
-    st.subheader("A Live Demonstration of Strategic V&V Leadership for QuidelOrtho")
+    st.subheader("A Live Demonstration of Strategic V&V Leadership")
     st.divider()
 
     st.markdown(
